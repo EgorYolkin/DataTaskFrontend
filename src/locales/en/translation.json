@@ -1,0 +1,35 @@
+{
+  "Вход в аккаунт": "Login to your account",
+  "Введите свой адрес электронной почты, чтобы войти в свою учетную запись": "Enter your email below to login to your account",
+
+  "Создать учетную запись": "Register your account",
+  "Введите свои данные ниже, чтобы создать учетную запись": "Enter your data below to create your account",
+
+  "Нет аккаунта?": "Don&apos;t have an account?",
+
+  "Уже есть аккаунт?": "Already have an account?",
+
+  "Почта": "Email",
+  "Пароль": "Password",
+
+  "Войти": "Login",
+  "Регистрация": "Sign up",
+  "Выйти из аккаунта": "Log out",
+
+  "Обзор": "Review",
+  "Текущие задачи": "Current tasks",
+  "Проекты": "Projects",
+  "Проект": "Project",
+  "Настройки": "Settings",
+  "Настройки панели": "Dashboard settings",
+  "Поиск языка": "Search language",
+  "Выбрать язык": "Select language",
+
+  "Задача": "Task",
+  "Опубликовать": "Publish",
+
+  "Выбрать проект": "Select project",
+
+  "Уведомления": "Notifications",
+  "Аккаунт": "Account"
+}
