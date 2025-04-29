@@ -19,13 +19,23 @@ import {CreateTaskFormCombobox} from "@/components/internal/forms/CreateTaskForm
 import {Button} from "@/components/ui/button.tsx";
 import {SendHorizontal} from "lucide-react";
 import {DashboardTasks} from "@/components/internal/tasks/DashboardTasks.tsx";
+import {DefaultKanban} from "@/App.tsx";
+import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
+import {UserInterface} from "@/interfaces/UserInterface.tsx";
+import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
 
-export const CurrentTasksDashboard = () => {
+interface CurrentTasksDashboardProps {
+    navMain: DashboardSidebarItemInterface[];
+    projects: ProjectInterface[];
+    user: UserInterface;
+}
+
+export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({navMain, projects, user}) => {
     const [t] = useTranslation();
 
     return (
         <SidebarProvider>
-            <AppSidebar/>
+            <AppSidebar navMain={navMain} user={user} projects={projects} />
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2">
                     <div className="flex items-center gap-2 px-5">
@@ -52,18 +62,18 @@ export const CurrentTasksDashboard = () => {
                             <Input type="email" placeholder={t("Task") + "..."}/>
                             <div className="flex w-full gap-1">
                                 <div className="w-[40%] sm:w-auto">
-                                    <CreateTaskFormCombobox/>
+                                    <CreateTaskFormCombobox projects={projects} />
                                 </div>
                                 <Button className="w-[60%] sm:w-auto">
                                     {t('Publish')} <SendHorizontal/>
                                 </Button>
                             </div>
                         </div>
-                        <div className="w-[60%] mt-[20px]">
+                        <div className="mt-[20px]">
                             <Separator orientation="horizontal" className="mr-2 h-4 "/>
                         </div>
                         <div className="flex justify-center gap-2">
-                            <DashboardTasks/>
+                            <DashboardTasks kanban={DefaultKanban}/>
                         </div>
                     </div>
                 </div>

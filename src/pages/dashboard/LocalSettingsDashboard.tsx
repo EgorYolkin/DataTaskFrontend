@@ -31,13 +31,22 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
+import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
+import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
+import {UserInterface} from "@/interfaces/UserInterface.tsx";
 
-export const LocalSettingsDashboard = () => {
+interface LocalSettingsDashboardProps {
+    navMain: DashboardSidebarItemInterface[];
+    projects: ProjectInterface[];
+    user: UserInterface;
+}
+
+export const LocalSettingsDashboard: React.FC<LocalSettingsDashboardProps> = ({navMain, projects, user}) => {
     const [t] = useTranslation();
 
     return (
         <SidebarProvider>
-            <AppSidebar/>
+            <AppSidebar navMain={navMain} user={user} projects={projects} />
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2">
                     <div className="flex items-center gap-2 px-5">

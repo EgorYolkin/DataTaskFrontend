@@ -34,5 +34,18 @@
   "Select project": "Выбрать проект",
 
   "Notifications": "Уведомления",
-  "Account": "Аккаунт"
+  "Account": "Аккаунт",
+  "Status": "Статус",
+
+  "Don't completed": "Не завершено",
+  "Completed": "Завершено",
+
+  "Type a command or search": "Введите команду или запрос",
+
+  "Filter tasks": "Сортировать задачи",
+  "No tasks found": "Задачи не найдены",
+  "Comments": "Комментарии",
+  "Add a comment": "Добавить комментарий",
+  "Assigned users": "Исполнители",
+  "No users assigned": "Исполнители не добавлены"
 }

@@ -13,8 +13,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import {ArrowUpDown, ChevronDown, CircleCheck} from "lucide-react"
-
+import {ArrowUpDown, ChevronDown, Circle, CircleCheck} from "lucide-react"
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -30,90 +29,91 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
+import {useTranslation} from "react-i18next";
 
-const data: Payment[] = [
-    {
-        id: "m5gr84i9",
-        task: "success",
-        project: "datastrip",
-    },
-    {
-        id: "3u1reuv4",
-        task: "success",
-        project: "datastrip",
-    },
-    {
-        id: "derv1ws0",
-        task: "processing",
-        project: "datastrip",
-    },
-    {
-        id: "5kma53ae",
-        task: "success",
-        project: "datastrip",
-    },
-    {
-        id: "bhqecj4p",
-        task: "failed",
-        project: "test",
-    },
-]
+// @ts-ignore
+const fuzzyFilter = (row, columnId, filterValue) => {
+    const title = row.original.title?.toLowerCase() ?? "";
+    const description = row.original.description?.toLowerCase() ?? "";
+    const search = filterValue.toLowerCase();
 
-export type Payment = {
-    id: string
-    task: string
-    project: string
-}
+    return title.includes(search) || description.includes(search);
+};
 
-export const columns: ColumnDef<Payment>[] = [
+// Update the columns to work with TaskInterface
+// @ts-ignore
+export const columns: ColumnDef<TaskInterface>[] = [
     {
         id: "select",
-        header: ({}) => (
-            <></>
-        ),
-        cell: ({}) => (
+        header: () => <></>,
+        cell: ({row}) => (
             <div>
-                <CircleCheck className="text-gray-200 hover:text-green-500 cursor-pointer" size="20"/>
+                {row.original.isCompleted ? (
+                    <CircleCheck
+                        className="text-green-500 cursor-pointer"
+                        size="20"
+                    />
+                ) : (
+                    <Circle
+                        className="text-gray-400 hover:text-gray-600 cursor-pointer"
+                        size="20"
+                    />
+                )}
             </div>
         ),
         enableSorting: false,
         enableHiding: false,
     },
     {
-        accessorKey: "project",
-        header: ({column}) => {
-            return (
-                <div
-                    className="flex items-center gap-2 cursor-pointer"
-                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-                >
-                    Project
-                    <ArrowUpDown size="1em"/>
-                </div>
-            )
-        },
-        cell: ({row}) => <div className="lowercase">{row.getValue("project")}</div>,
+        accessorKey: "title",
+        filterFn: "fuzzy",
+        header: ({column}) => (
+            <div
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+            >
+                Task Title
+                <ArrowUpDown size="1em"/>
+            </div>
+        ),
+        cell: ({row}) => <div>{row.getValue("title")}</div>,
     },
     {
-        accessorKey: "task",
-        header: () => <div className="text-right">Task</div>,
-        cell: ({row}) => {
-            return <div className="text-right font-medium">{row.getValue("task")}</div>
-        },
+        accessorKey: "description",
+        header: "Description",
+        cell: ({row}) => <div>{row.getValue("description")}</div>,
+    },
+    {
+        accessorKey: "users",
+        header: "Assigned Users",
+        cell: ({row}) => (
+            <div>
+                {(row.getValue("users") as any[])?.map(user => user.name).join(", ") || "None"}
+            </div>
+        ),
+    },
+    {
+        accessorKey: "isCompleted",
+        header: "Status",
+        cell: ({row}) => (
+            <div>
+                {row.getValue("isCompleted") ? "Completed" : "Pending"}
+            </div>
+        ),
     },
 ]
 
-export function DashboardTasks() {
+// Update component to receive KanbanInterface as props
+export function DashboardTasks({kanban}: { kanban: KanbanInterface }) {
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-        []
-    )
-    const [columnVisibility, setColumnVisibility] =
-        React.useState<VisibilityState>({})
+    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = React.useState({})
+    const [t] = useTranslation();
 
     const table = useReactTable({
-        data,
+        data: kanban.tasks,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -129,16 +129,19 @@ export function DashboardTasks() {
             columnVisibility,
             rowSelection,
         },
+        filterFns: {
+            fuzzy: fuzzyFilter,
+        },
     })
 
     return (
         <div className="w-full">
             <div className="flex items-center py-4">
                 <Input
-                    placeholder="Filter"
-                    value={(table.getColumn("project")?.getFilterValue() as string) ?? ""}
+                    placeholder={t('Filter tasks') + "..."}
+                    value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
                     onChange={(event) =>
-                        table.getColumn("project")?.setFilterValue(event.target.value)
+                        table.getColumn("title")?.setFilterValue(event.target.value)
                     }
                     className="max-w-sm"
                 />
@@ -152,20 +155,18 @@ export function DashboardTasks() {
                         {table
                             .getAllColumns()
                             .filter((column) => column.getCanHide())
-                            .map((column) => {
-                                return (
-                                    <DropdownMenuCheckboxItem
-                                        key={column.id}
-                                        className="capitalize"
-                                        checked={column.getIsVisible()}
-                                        onCheckedChange={(value) =>
-                                            column.toggleVisibility(!!value)
-                                        }
-                                    >
-                                        {column.id}
-                                    </DropdownMenuCheckboxItem>
-                                )
-                            })}
+                            .map((column) => (
+                                <DropdownMenuCheckboxItem
+                                    key={column.id}
+                                    className="capitalize"
+                                    checked={column.getIsVisible()}
+                                    onCheckedChange={(value) =>
+                                        column.toggleVisibility(!!value)
+                                    }
+                                >
+                                    {column.id}
+                                </DropdownMenuCheckboxItem>
+                            ))}
                     </DropdownMenuContent>
                 </DropdownMenu>
             </div>
@@ -174,18 +175,16 @@ export function DashboardTasks() {
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => {
-                                    return (
-                                        <TableHead key={header.id}>
-                                            {header.isPlaceholder
-                                                ? null
-                                                : flexRender(
-                                                    header.column.columnDef.header,
-                                                    header.getContext()
-                                                )}
-                                        </TableHead>
-                                    )
-                                })}
+                                {headerGroup.headers.map((header) => (
+                                    <TableHead key={header.id}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </TableHead>
+                                ))}
                             </TableRow>
                         ))}
                     </TableHeader>
@@ -212,7 +211,7 @@ export function DashboardTasks() {
                                     colSpan={columns.length}
                                     className="h-24 text-center"
                                 >
-                                    No results.
+                                    {t('No tasks found')}
                                 </TableCell>
                             </TableRow>
                         )}

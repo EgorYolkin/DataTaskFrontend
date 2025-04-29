@@ -1,15 +1,6 @@
 "use client"
 
-import * as React from "react"
-import {
-    Command,
-    Frame,
-    LifeBuoy,
-    Send,
-    Settings2,
-    CheckIcon
-} from "lucide-react"
-
+import * as React from "react";
 import {
     Sidebar,
     SidebarContent,
@@ -18,100 +9,67 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-} from "@/components/ui/sidebar"
-import {NavMain} from "@/components/internal/dashboard/NavMain.tsx";
-import {NavUser} from "@/components/internal/dashboard/NavUser.tsx";
-import {NavProjects} from "@/components/internal/dashboard/NavProjects.tsx";
+} from "@/components/ui/sidebar";
+import { NavMain } from "@/components/internal/dashboard/NavMain.tsx";
+import { NavUser } from "@/components/internal/dashboard/NavUser.tsx";
+import { NavProjects, ProjectNavItem } from "@/components/internal/dashboard/NavProjects.tsx";
+import logo from "/DataTask.svg";
+import { Separator } from "@/components/ui/separator.tsx";
+import { DashboardSidebarItemInterface } from "@/interfaces/DashboardSidebarInterface.tsx";
+import { ProjectInterface } from "@/interfaces/ProjectInterface.tsx";
+import { UserInterface } from "@/interfaces/UserInterface.tsx";
+import { Folder } from "lucide-react";
 
-const data = {
-    user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
-    },
-    navMain: [
-        {
-            title: "Current tasks",
-            url: "/dashboard",
-            icon: CheckIcon,
-            isActive: true,
-        },
-        {
-            title: "Settings",
-            url: "/dashboard/settings",
-            icon: Settings2,
-        },
-    ],
-    navSecondary: [
-        {
-            title: "Support",
-            url: "#",
-            icon: LifeBuoy,
-        },
-        {
-            title: "Feedback",
-            url: "#",
-            icon: Send,
-        },
-    ],
-    projects: [
-        {
-            title: "DataStrip",
-            url: "#",
-            icon: Frame,
-            items: [
-                {
-                    title: "Backend",
-                    url: "/dashboard/project",
-                },
-                {
-                    title: "AI",
-                    url: "/dashboard/project"
-                },
-                {
-                    title: "Frontend",
-                    url: "/dashboard/project"
-                },
-                {
-                    title: "Managment",
-                    url: "/dashboard/project"
-                },
-                {
-                    title: "Design",
-                    url: "/dashboard/project"
-                }
-            ]
-        },
-    ],
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+    navMain: DashboardSidebarItemInterface[];
+    projects: ProjectInterface[];
+    user: UserInterface;
 }
 
-export function AppSidebar({...props}: React.ComponentProps<typeof Sidebar>) {
+export function AppSidebar({ navMain, projects, user, ...props }: AppSidebarProps) {
+    // Добавляем защиту от undefined
+    const projectItems: ProjectNavItem[] = projects && projects.length > 0
+        ? projects.map((project) => ({
+            title: project.name,
+            url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}`,
+            icon: Folder,
+            color: project.color,
+            description: project.description,
+            isActive: false,
+            items: project.topics.map((topic) => ({
+                title: topic.name,
+                url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}/topic/${topic.name.toLowerCase().replace(/\s+/g, "-")}`,
+            })),
+        }))
+        : [];
+
     return (
         <Sidebar variant="inset" {...props}>
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <a href="/">
-                                <div
-                                    className="flex aspect-square size-7 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                                    <Command className="size-4"/>
-                                </div>
-                                <div className="grid flex-1 text-left text-sm leading-tight">
-                                    <span className="truncate font-semibold text-black">DataTask</span>
-                                </div>
-                            </a>
+                            <div className="flex items-center">
+                                <a href="/">
+                                    <img src={logo} width="150px" alt="" />
+                                </a>
+                            </div>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
+            <div className="flex items-center justify-center">
+                <div className="w-[85%]">
+                    <Separator />
+                </div>
+            </div>
             <SidebarContent>
-                <NavMain items={data.navMain}/>
-                <NavProjects items={data.projects}/>
+                <NavMain items={navMain} />
+                <NavProjects items={projectItems} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user}/>
+                <NavUser user={user} />
             </SidebarFooter>
         </Sidebar>
-    )
+    );
 }

@@ -42,7 +42,7 @@ export function RegisterForm({
             </div>
             <div className="text-center text-sm">
                 {t('Already have an account?')}{" "}
-                <a href="" className="underline underline-offset-4">
+                <a href="/auth/login" className="underline underline-offset-4">
                     {t('Login')}
                 </a>
             </div>

@@ -42,7 +42,7 @@ export function LoginForm({
 
             </div>
             <div className="text-center text-sm">
-                {t('Don&apos;t have an account?')}{" "}
+                {t('Don`t have an account?')}{" "}
                 <a href="/auth/register" className="underline underline-offset-4">
                     {t('Sign up')}
                 </a>

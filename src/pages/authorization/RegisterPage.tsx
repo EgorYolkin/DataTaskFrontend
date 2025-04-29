@@ -7,9 +7,9 @@ export const RegisterPage = () => {
         <div className="grid min-h-svh lg:grid-cols-2">
             <div className="flex flex-col gap-4 p-6 md:p-10">
                 <div className="flex justify-center gap-2 md:justify-start">
-                    <a href="#" className="flex items-center gap-2 font-medium bg-gray-600 rounded-2xl p-4">
+                    <div className="flex items-center gap-2 font-medium">
                         <img src={logo} width="150px" alt=""/>
-                    </a>
+                    </div>
                 </div>
                 <div className="flex flex-1 items-center justify-center">
                     <div className="w-full max-w-xs">
