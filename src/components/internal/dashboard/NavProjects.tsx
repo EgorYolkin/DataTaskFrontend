@@ -5,7 +5,6 @@ import {type LucideIcon} from "lucide-react"
 import {
     Collapsible,
     CollapsibleContent,
-    CollapsibleTrigger,
 } from "@/components/ui/collapsible"
 import {
     SidebarGroup,
@@ -43,12 +42,12 @@ export function NavProjects({
                     <Collapsible key={item.title} asChild defaultOpen={true}>
                         <SidebarMenuItem>
                             <SidebarMenuButton asChild tooltip={item.title}>
-                                <CollapsibleTrigger asChild>
-                                    <a href={item.url}>
-                                        <item.icon className={"text-black"} width={"1.5em"}/>
+                                <div className="flex w-full">
+                                    <a href={item.url} className="flex items-center gap-2">
+                                        <item.icon className={"text-black"} width={"1em"}/>
                                         <span className="text-black">{t(item.title)}</span>
                                     </a>
-                                </CollapsibleTrigger>
+                                </div>
                             </SidebarMenuButton>
                             {item.items?.length ? (
                                 <>
