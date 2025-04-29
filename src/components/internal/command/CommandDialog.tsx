@@ -96,7 +96,7 @@ export function Command({projects}: CommandProps) {
                                 // CommandItem for each topic
                                 <CommandItem
                                     key={`topic-${project.name}-${topic.name}`} // Unique key on CommandItem
-                                    onSelect={() => handleSelectItem(`/project/${createSlug(project.name)}/topic/${createSlug(topic.name)}`)} // Navigate using onSelect
+                                    onSelect={() => handleSelectItem(`/project/${createSlug(project.name)}/${createSlug(topic.name)}`)} // Navigate using onSelect
                                     className="pl-8" // Add left padding for visual hierarchy
                                 >
                                     <Folder className="mr-2 h-4 w-4"/> {/* Folder icon for topics */}

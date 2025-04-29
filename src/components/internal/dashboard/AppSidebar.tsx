@@ -38,7 +38,7 @@ export function AppSidebar({ navMain, projects, user, ...props }: AppSidebarProp
             isActive: false,
             items: project.topics.map((topic) => ({
                 title: topic.name,
-                url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}/topic/${topic.name.toLowerCase().replace(/\s+/g, "-")}`,
+                url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}/${topic.name.toLowerCase().replace(/\s+/g, "-")}`,
             })),
         }))
         : [];

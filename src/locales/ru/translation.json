@@ -5,7 +5,7 @@
   "Register your account": "Создать учетную запись",
   "Enter your data below to create your account": "Введите свои данные ниже, чтобы создать учетную запись",
 
-  "Don&apos;t have an account?": "Нет аккаунта?",
+  "Don`t have an account?": "Нет аккаунта?",
 
   "Already have an account?": "Уже есть аккаунт?",
 
@@ -15,6 +15,9 @@
   "Login": "Войти",
   "Sign up": "Регистрация",
   "Log out": "Выйти из аккаунта",
+
+  "Invalid URL": "Некорректный маршрут",
+  "Please provide a valid project and topic in the URL.": "Укажите корректный",
 
   "Review": "Обзор",
   "Current tasks": "Текущие задачи",

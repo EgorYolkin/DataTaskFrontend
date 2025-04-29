@@ -43,13 +43,13 @@ export function NavProjects({ items }: { items: ProjectNavItem[] }) {
                                 tooltip={item.description || item.title}
                                 style={{ backgroundColor: item.color ? `${item.color}20` : undefined }}
                             >
-                                <div className="flex w-full">
-                                    <a href={item.url} className="flex items-center gap-1">
-                                        {item.icon && <item.icon className="text-black" width="1em" />}
-                                        <span className="text-black">
-                      {t(item.title)}
-                                            {item.taskCount ? ` (${item.taskCount})` : ""}
-                    </span>
+                                            <div className="flex w-full">
+                                                <a href={item.url} className="flex items-center gap-1">
+                                                    {item.icon && <item.icon className="text-black" width="1em" />}
+                                                    <span className="text-black">
+                                  {t(item.title)}
+                                                        {item.taskCount ? ` (${item.taskCount})` : ""}
+                                </span>
                                     </a>
                                 </div>
                             </SidebarMenuButton>

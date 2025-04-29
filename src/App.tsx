@@ -6,12 +6,13 @@ import './i18n'
 import {CurrentTasksDashboard} from "@/pages/dashboard/CurrentTasksDashboard.tsx"
 import {Command} from "@/components/internal/command/CommandDialog.tsx" // Correct import
 import {LocalSettingsDashboard} from "@/pages/dashboard/LocalSettingsDashboard.tsx"
-import {ProjectDashboard} from "@/pages/dashboard/ProjectDashboard.tsx"
+import {ProjectTopicDashboard} from "@/pages/dashboard/ProjectTopicDashboard.tsx"
 import {Navigate} from "react-router-dom"
 import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx" // Import ProjectInterface
 import {UserInterface} from "@/interfaces/UserInterface.tsx"
 import {DefaultDashboardSidebarItems} from "@/interfaces/DashboardSidebarInterface.tsx"
+import {ProjectDashboard} from "@/pages/dashboard/ProjectDashboard.tsx";
 
 export function ProtectedRoute({isAuth, children}: { isAuth: boolean; children: React.ReactNode }) {
     if (!isAuth) {
@@ -115,7 +116,7 @@ function App() {
                         path="/project/:projectName/topic/:topicName"
                         element={
                             <ProtectedRoute isAuth={isAuth}>
-                                <ProjectDashboard
+                                <ProjectTopicDashboard
                                     navMain={DefaultDashboardSidebarItems}
                                     projects={projects}
                                     user={testUser}
@@ -125,14 +126,29 @@ function App() {
                     />
 
                     {/* NEW Route for navigating directly to a project by name */}
-                    {/* You might want to add logic in ProjectDashboard to handle this route,
+                    {/* You might want to add logic in ProjectTopicDashboard to handle this route,
                          e.g., redirect to the first topic or show a project overview */}
                     <Route
                         path="/project/:projectName"
                         element={
                             <ProtectedRoute isAuth={isAuth}>
-                                {/* Reusing ProjectDashboard, adjust if needed */}
+                                {/* Reusing ProjectTopicDashboard, adjust if needed */}
                                 <ProjectDashboard
+                                    navMain={DefaultDashboardSidebarItems}
+                                    projects={projects}
+                                    user={testUser}
+                                />
+                            </ProtectedRoute>
+                        }
+                    />
+
+                    <Route
+
+                        path="/project/:projectName/:topicName"
+                        element={
+                            <ProtectedRoute isAuth={isAuth}>
+                                {/* Reusing ProjectTopicDashboard, adjust if needed */}
+                                <ProjectTopicDashboard
                                     navMain={DefaultDashboardSidebarItems}
                                     projects={projects}
                                     user={testUser}
