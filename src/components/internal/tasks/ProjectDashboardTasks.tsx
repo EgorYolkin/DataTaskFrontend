@@ -40,6 +40,7 @@ import {Input} from "@/components/ui/input" // Make sure Input is imported
 import {Button} from "@/components/ui/button"
 import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
 import {useTranslation} from "react-i18next"
+import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx";
 
 interface Comment {
     id: number
@@ -126,11 +127,7 @@ export const columns: ColumnDef<TaskInterface>[] = [
         header: () => <></>,
         cell: ({row}) => (
             <div>
-                {row.original.isCompleted ? (
-                    <CircleCheck className="text-green-500 cursor-pointer" size="20"/>
-                ) : (
-                    <Circle className="text-gray-400 hover:text-gray-600 cursor-pointer" size="20"/>
-                )}
+                <CheckStatus taskID={row.original.taskID} isCompleted={row.original.isCompleted}></CheckStatus>
             </div>
         ),
         enableSorting: false,
@@ -336,14 +333,13 @@ export function ProjectDashboardTasks({kanban, onKanbanNameChange}: ProjectDashb
                             <div>
                                 <h4 className="font-semibold">{t("Status")}</h4>
                                 <span className="flex items-center gap-2 mt-2">
+                                    <CheckStatus isCompleted={selectedTask.isCompleted} taskID={selectedTask.taskID}></CheckStatus>
                                     {selectedTask.isCompleted ? (
                                         <>
-                                            <CircleCheck className="text-green-500" size="20"/>
                                             <span className="text-sm font-semibold">{t("Completed")}</span>
                                         </>
                                     ) : (
                                         <>
-                                            <Circle className="text-gray-400" size="20"/>
                                             <span className="text-sm font-semibold">{t("Don't completed")}</span>
                                         </>
                                     )}

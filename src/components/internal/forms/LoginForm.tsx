@@ -1,18 +1,78 @@
-import {cn} from "@/lib/utils"
-import {Button} from "@/components/ui/button"
-import {Input} from "@/components/ui/input"
-import {Label} from "@/components/ui/label"
-
+import {cn} from "@/lib/utils";
+import {Button} from "@/components/ui/button";
+import {Input} from "@/components/ui/input";
+import {Label} from "@/components/ui/label";
 import {useTranslation} from 'react-i18next';
+import React, {useState, useCallback} from "react";
+
+interface LoginFormProps extends React.ComponentPropsWithoutRef<"form"> {
+    onLoginSuccess?: (accessToken: string) => void;
+    onLoginError?: (error: string) => void;
+}
+
+async function loginUser(credentials: Record<string, string>): Promise<string> {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiVersion = import.meta.env.VITE_API_VERSION;
+
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/auth/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        mode: "no-cors",
+        body: JSON.stringify(credentials),
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData?.message || `Ошибка входа: ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data?.access_token;
+}
 
 export function LoginForm({
                               className,
+                              onLoginSuccess,
+                              onLoginError,
                               ...props
-                          }: React.ComponentPropsWithoutRef<"form">) {
+                          }: LoginFormProps) {
     const [t] = useTranslation();
 
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const handleInputChange = useCallback((
+        event: React.ChangeEvent<HTMLInputElement>,
+        setter: React.Dispatch<React.SetStateAction<string>>
+    ) => {
+        setter(event.target.value);
+    }, []);
+
+    const handleLoginClick = useCallback(async () => {
+        setIsLoading(true);
+        setErrorMessage(null);
+
+        try {
+            const accessToken = await loginUser({email, password});
+            // Безопасное хранение accessToken (в примере используется localStorage)
+            localStorage.setItem('accessToken', accessToken);
+            console.log("Успешный вход, accessToken сохранен.");
+            onLoginSuccess?.(accessToken);
+        } catch (error: any) {
+            console.error("Ошибка входа:", error.message);
+            setErrorMessage(error.message || t('An error occurred during login'));
+            onLoginError?.(error.message || t('An error occurred during login'));
+        } finally {
+            setIsLoading(false);
+        }
+    }, [email, password, t, onLoginSuccess, onLoginError]);
+
     return (
-        <form className={cn("flex flex-col gap-6", className)} {...props}>
+        <form onSubmit={(e) => e.preventDefault()} className={cn("flex flex-col gap-6", className)} {...props}>
             <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">{t('Login to your account')}</h1>
                 <p className="text-balance text-sm text-muted-foreground">
@@ -20,9 +80,21 @@ export function LoginForm({
                 </p>
             </div>
             <div className="grid gap-6">
+                {errorMessage && (
+                    <div className="p-2 text-sm text-red-600 bg-red-100 rounded-md">
+                        {errorMessage}
+                    </div>
+                )}
                 <div className="grid gap-2">
                     <Label htmlFor="email">{t('Email')}</Label>
-                    <Input id="email" type="email" placeholder="m@example.com" required/>
+                    <Input
+                        onChange={(e) => handleInputChange(e, setEmail)}
+                        id="email"
+                        type="email"
+                        placeholder="m@example.com"
+                        required
+                        aria-invalid={!!errorMessage}
+                    />
                 </div>
                 <div className="grid gap-2">
                     <div className="flex items-center">
@@ -31,15 +103,20 @@ export function LoginForm({
                             href="#"
                             className="ml-auto text-sm underline-offset-4 hover:underline"
                         >
-
+                            {/* Можно добавить текст "Забыли пароль?" здесь */}
                         </a>
                     </div>
-                    <Input id="password" type="password" required/>
+                    <Input
+                        onChange={(e) => handleInputChange(e, setPassword)}
+                        id="password"
+                        type="password"
+                        required
+                        aria-invalid={!!errorMessage}
+                    />
                 </div>
-                <Button type="submit" className="w-full">
-                    {t('Login')}
+                <Button type="submit" className="w-full" onClick={handleLoginClick} disabled={isLoading}>
+                    {isLoading ? t('Logging in...') : t('Login')}
                 </Button>
-
             </div>
             <div className="text-center text-sm">
                 {t('Don`t have an account?')}{" "}
@@ -48,5 +125,5 @@ export function LoginForm({
                 </a>
             </div>
         </form>
-    )
+    );
 }

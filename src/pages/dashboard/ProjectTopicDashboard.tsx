@@ -206,7 +206,7 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
                             <div className="flex gap-5 overflow-auto max-w-[100vw]">
                                 {kanbans.length > 0 ? (
                                     kanbans.map((kanban) => (
-                                        <ProjectDashboardTasks key={kanban.name} kanban={kanban}/>
+                                        <ProjectDashboardTasks onKanbanNameChange={() => {}} key={kanban.name} kanban={kanban}/>
                                     ))
                                 ) : (
                                     <p>{t("No Kanban boards found for this topic.")}</p>

@@ -11,9 +11,9 @@ import {
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    useReactTable,
+    useReactTable, Row,
 } from "@tanstack/react-table"
-import {ArrowUpDown, ChevronDown, Circle, CircleCheck} from "lucide-react"
+import {ArrowUpDown, ChevronDown} from "lucide-react"
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -31,9 +31,11 @@ import {
 } from "@/components/ui/table"
 import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
 import {useTranslation} from "react-i18next";
+import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx";
 
-// @ts-ignore
-const fuzzyFilter = (row, columnId, filterValue) => {
+const fuzzyFilter = (row: Row<TaskInterface>, columnId: number, filterValue: string) => {
+    console.log(columnId);
+
     const title = row.original.title?.toLowerCase() ?? "";
     const description = row.original.description?.toLowerCase() ?? "";
     const search = filterValue.toLowerCase();
@@ -42,24 +44,13 @@ const fuzzyFilter = (row, columnId, filterValue) => {
 };
 
 // Update the columns to work with TaskInterface
-// @ts-ignore
 export const columns: ColumnDef<TaskInterface>[] = [
     {
         id: "select",
         header: () => <></>,
         cell: ({row}) => (
             <div>
-                {row.original.isCompleted ? (
-                    <CircleCheck
-                        className="text-green-500 cursor-pointer"
-                        size="20"
-                    />
-                ) : (
-                    <Circle
-                        className="text-gray-400 hover:text-gray-600 cursor-pointer"
-                        size="20"
-                    />
-                )}
+                <CheckStatus taskID={row.original.taskID} isCompleted={row.original.isCompleted}></CheckStatus>
             </div>
         ),
         enableSorting: false,
@@ -89,16 +80,7 @@ export const columns: ColumnDef<TaskInterface>[] = [
         header: "Assigned Users",
         cell: ({row}) => (
             <div>
-                {(row.getValue("users") as any[])?.map(user => user.name).join(", ") || "None"}
-            </div>
-        ),
-    },
-    {
-        accessorKey: "isCompleted",
-        header: "Status",
-        cell: ({row}) => (
-            <div>
-                {row.getValue("isCompleted") ? "Completed" : "Pending"}
+                {(row.getValue("users") as any[])?.map(user => user.name).join(", ") || ""}
             </div>
         ),
     },

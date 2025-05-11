@@ -6,6 +6,7 @@ export interface KanbanInterface {
 }
 
 export interface TaskInterface {
+    taskID: number;
     title: string;
     description: string;
     users: UserInterface[];
