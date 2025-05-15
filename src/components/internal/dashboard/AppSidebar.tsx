@@ -10,15 +10,15 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { NavMain } from "@/components/internal/dashboard/NavMain.tsx";
-import { NavUser } from "@/components/internal/dashboard/NavUser.tsx";
-import { NavProjects, ProjectNavItem } from "@/components/internal/dashboard/NavProjects.tsx";
+import {NavMain} from "@/components/internal/dashboard/NavMain.tsx";
+import {NavUser} from "@/components/internal/dashboard/NavUser.tsx";
+import {NavProjects, ProjectNavItem} from "@/components/internal/dashboard/NavProjects.tsx";
 import logo from "/DataTask.svg";
-import { Separator } from "@/components/ui/separator.tsx";
-import { DashboardSidebarItemInterface } from "@/interfaces/DashboardSidebarInterface.tsx";
-import { ProjectInterface } from "@/interfaces/ProjectInterface.tsx";
-import { UserInterface } from "@/interfaces/UserInterface.tsx";
-import { Folder } from "lucide-react";
+import {Separator} from "@/components/ui/separator.tsx";
+import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
+import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
+import {UserInterface} from "@/interfaces/UserInterface.tsx";
+import {Folder} from "lucide-react";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     navMain: DashboardSidebarItemInterface[];
@@ -26,7 +26,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     user: UserInterface;
 }
 
-export function AppSidebar({ navMain, projects, user, ...props }: AppSidebarProps) {
+export function AppSidebar({navMain, projects, user, ...props}: AppSidebarProps) {
     // Добавляем защиту от undefined
     const projectItems: ProjectNavItem[] = projects && projects.length > 0
         ? projects.map((project) => ({
@@ -51,7 +51,7 @@ export function AppSidebar({ navMain, projects, user, ...props }: AppSidebarProp
                         <SidebarMenuButton size="lg" asChild>
                             <div className="flex items-center">
                                 <a href="/">
-                                    <img src={logo} width="150px" alt="" />
+                                    <img src={logo} width="150px" alt=""/>
                                 </a>
                             </div>
                         </SidebarMenuButton>
@@ -60,15 +60,15 @@ export function AppSidebar({ navMain, projects, user, ...props }: AppSidebarProp
             </SidebarHeader>
             <div className="flex items-center justify-center">
                 <div className="w-[85%]">
-                    <Separator />
+                    <Separator/>
                 </div>
             </div>
             <SidebarContent>
-                <NavMain items={navMain} />
-                <NavProjects items={projectItems} />
+                <NavMain items={navMain}/>
+                <NavProjects items={projectItems}/>
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={user} />
+                <NavUser user={user}/>
             </SidebarFooter>
         </Sidebar>
     );

@@ -5,7 +5,7 @@ import {Label} from "@/components/ui/label";
 import {useTranslation} from "react-i18next";
 import React, {useState, useCallback} from "react";
 
-interface RegisterFormProps extends React.ComponentPropsWithoutRef<"form"> {
+interface RegisterFormProps extends Omit<React.ComponentPropsWithoutRef<"form">, "onError"> {
     onSuccess?: () => void;
     onError?: (error: string) => void;
 }
@@ -14,12 +14,12 @@ async function createUser(userData: Record<string, string>): Promise<any> {
     const apiUrl = import.meta.env.VITE_API_URL;
     const apiVersion = import.meta.env.VITE_API_VERSION;
 
-    const response = await fetch(`${apiUrl}/api/${apiVersion}/user/create`, {
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/user/create/`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
         },
-        mode: "no-cors",
+        credentials: 'include',
         body: JSON.stringify(userData),
     });
 

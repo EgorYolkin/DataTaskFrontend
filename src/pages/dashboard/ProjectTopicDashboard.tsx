@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useMemo } from "react" // Import useMemo
+import React, {useMemo} from "react" // Import useMemo
 import {useParams} from "react-router-dom"
 import {
     Breadcrumb,
@@ -73,17 +73,17 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
     const foundProjectAndTopic = useMemo(() => {
         if (!projects || projects.length === 0) {
             // Handle case where projects data is not yet loaded or is empty
-            return { project: undefined, topic: undefined, isLoading: true }; // Indicate loading or no data
+            return {project: undefined, topic: undefined, isLoading: true}; // Indicate loading or no data
         }
 
         const project = projects.find((p) => p.name.toLowerCase() === projectName.toLowerCase());
         const topic = project?.topics.find((t) => t.name.toLowerCase() === topicName.toLowerCase());
 
-        return { project, topic, isLoading: false };
+        return {project, topic, isLoading: false};
 
     }, [projects, projectName, topicName]); // Dependencies: re-run memo only if these change
 
-    const { project, topic, isLoading } = foundProjectAndTopic;
+    const {project, topic, isLoading} = foundProjectAndTopic;
     // --- End useMemo ---
 
     // You could potentially add a loading state UI here if isLoading is true
@@ -206,7 +206,8 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
                             <div className="flex gap-5 overflow-auto max-w-[100vw]">
                                 {kanbans.length > 0 ? (
                                     kanbans.map((kanban) => (
-                                        <ProjectDashboardTasks onKanbanNameChange={() => {}} key={kanban.name} kanban={kanban}/>
+                                        <ProjectDashboardTasks onKanbanNameChange={() => {
+                                        }} key={kanban.name} kanban={kanban}/>
                                     ))
                                 ) : (
                                     <p>{t("No Kanban boards found for this topic.")}</p>

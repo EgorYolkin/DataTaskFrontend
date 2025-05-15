@@ -19,24 +19,24 @@ async function loginUser(credentials: Record<string, string>): Promise<string> {
         headers: {
             "Content-Type": "application/json",
         },
-        mode: "no-cors",
+        credentials: 'include',
         body: JSON.stringify(credentials),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData?.message || `Ошибка входа: ${response.status}`);
+        console.log(data);
+        throw new Error(data?.error || `Ошибка входа: ${response.status}`);
     }
 
-    const data = await response.json();
-    return data?.access_token;
+    return data.data.access_token;
 }
 
 export function LoginForm({
                               className,
                               onLoginSuccess,
                               onLoginError,
-                              ...props
                           }: LoginFormProps) {
     const [t] = useTranslation();
 
@@ -58,12 +58,9 @@ export function LoginForm({
 
         try {
             const accessToken = await loginUser({email, password});
-            // Безопасное хранение accessToken (в примере используется localStorage)
             localStorage.setItem('accessToken', accessToken);
-            console.log("Успешный вход, accessToken сохранен.");
             onLoginSuccess?.(accessToken);
         } catch (error: any) {
-            console.error("Ошибка входа:", error.message);
             setErrorMessage(error.message || t('An error occurred during login'));
             onLoginError?.(error.message || t('An error occurred during login'));
         } finally {
@@ -72,7 +69,7 @@ export function LoginForm({
     }, [email, password, t, onLoginSuccess, onLoginError]);
 
     return (
-        <form onSubmit={(e) => e.preventDefault()} className={cn("flex flex-col gap-6", className)} {...props}>
+        <div className={cn("flex flex-col gap-6", className)}>
             <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">{t('Login to your account')}</h1>
                 <p className="text-balance text-sm text-muted-foreground">
@@ -93,7 +90,6 @@ export function LoginForm({
                         type="email"
                         placeholder="m@example.com"
                         required
-                        aria-invalid={!!errorMessage}
                     />
                 </div>
                 <div className="grid gap-2">
@@ -103,7 +99,7 @@ export function LoginForm({
                             href="#"
                             className="ml-auto text-sm underline-offset-4 hover:underline"
                         >
-                            {/* Можно добавить текст "Забыли пароль?" здесь */}
+
                         </a>
                     </div>
                     <Input
@@ -111,7 +107,6 @@ export function LoginForm({
                         id="password"
                         type="password"
                         required
-                        aria-invalid={!!errorMessage}
                     />
                 </div>
                 <Button type="submit" className="w-full" onClick={handleLoginClick} disabled={isLoading}>
@@ -124,6 +119,6 @@ export function LoginForm({
                     {t('Sign up')}
                 </a>
             </div>
-        </form>
+        </div>
     );
 }

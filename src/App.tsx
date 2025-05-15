@@ -8,11 +8,13 @@ import {Command} from "@/components/internal/command/CommandDialog.tsx" // Corre
 import {LocalSettingsDashboard} from "@/pages/dashboard/LocalSettingsDashboard.tsx"
 import {ProjectTopicDashboard} from "@/pages/dashboard/ProjectTopicDashboard.tsx"
 import {Navigate} from "react-router-dom"
-import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx" // Import ProjectInterface
 import {UserInterface} from "@/interfaces/UserInterface.tsx"
 import {DefaultDashboardSidebarItems} from "@/interfaces/DashboardSidebarInterface.tsx"
 import {ProjectDashboard} from "@/pages/dashboard/ProjectDashboard.tsx";
+import {CreateProjectDashboard} from "@/pages/dashboard/CreateProjectDashboard.tsx";
+import {jwtDecode, JwtPayload} from "jwt-decode";
+import React, {useState, useEffect} from 'react'; // Import useState and useEffect
 
 export function ProtectedRoute({isAuth, children}: { isAuth: boolean; children: React.ReactNode }) {
     if (!isAuth) {
@@ -21,73 +23,107 @@ export function ProtectedRoute({isAuth, children}: { isAuth: boolean; children: 
     return <>{children}</>
 }
 
-const testUser: UserInterface = {
-    id: 1,
-    name: "Egor",
-    surname: "Yolkin",
-    email: "egy@datastrip.cloud",
-    avatarUrl: "https://google.com",
-}
-const testUser2: UserInterface = {
-    id: 2,
-    name: "Evgeniy",
-    surname: "Novoslov",
-    email: "evg@datastrip.cloud",
-    avatarUrl: "https://google.com",
-}
-const testTask: TaskInterface = {
-    title: "Сделать что-то",
-    description: "Описание этого всего",
-    isCompleted: true,
-    users: [testUser, testUser2],
-}
-const testTask2: TaskInterface = {
-    title: "Выполнить sql запросы",
-    description: "Ну хотя бы попробовать",
-    isCompleted: false,
-    users: [],
-}
-export const DefaultKanban: KanbanInterface = {
-    name: "Backlog",
-    tasks: [testTask, testTask2]
-}
-export const DefaultKanban2: KanbanInterface = {
-    name: "Backend",
-    tasks: [testTask2],
-}
-const testProject: ProjectInterface = { // Define testProject
-    name: "datastrip",
-    color: "#FFFFFF",
-    description: "AI-powered cloud & dashboard",
-    allowedUsers: [
-        {
-            id: 1,
-            avatarUrl: "https://google.com",
-            name: "Egor",
-            surname: "Yolkin",
-            email: "egor@gmail.com",
+async function getProjects(userID: number): Promise<ProjectInterface[]> {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiVersion = import.meta.env.VITE_API_VERSION;
+
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/user_projects/${userID}`, {
+        method: "GET",
+        credentials: 'include',
+        headers: {
+            "Authorization": localStorage.getItem("accessToken") || "",
+            "Content-Type": "application/json",
         },
-    ],
-    topics: [
-        {
-            name: "Backend",
-            color: "#FAFAFA",
-            description: "Ba",
-            kanbans: [DefaultKanban, DefaultKanban2]
-        },
-        {
-            name: "Frontend",
-            color: "#FAFAFA",
-            description: "Fr",
-            kanbans: [DefaultKanban]
-        },
-    ],
+    });
+
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+            console.error("Ошибка от сервера:", errorData);
+            throw new Error(errorData?.message || `Ошибка получения проектов: ${response.status}`);
+        } catch (e) {
+            console.error("Ошибка при обработке ответа об ошибке:", e);
+            throw new Error(`Ошибка получения проектов: ${response.status}`);
+        }
+    }
+
+    const responseData = await response.json();
+    const projectsRaw = responseData.data;
+
+    const projects: ProjectInterface[] = await Promise.all(projectsRaw.map(async (project: any) => {
+        // Получаем сабтопики
+        const subtopicsResp = await fetch(`${apiUrl}/api/${apiVersion}/project_subprojects/${project.id}`, {
+            method: "GET",
+            credentials: 'include',
+            headers: {
+                "Authorization": localStorage.getItem("accessToken") || "",
+                "Content-Type": "application/json",
+            },
+        });
+
+        let subtopicsData = [];
+        if (subtopicsResp.ok) {
+            const subtopicsJson = await subtopicsResp.json();
+            subtopicsData = subtopicsJson.data || [];
+        } else {
+            console.warn(`Не удалось получить субтопики для проекта ID ${project.id}`);
+        }
+
+        const topics = subtopicsData.map((topic: any) => ({
+            id: topic.id,
+            name: topic.name,
+            color: topic.color,
+            description: topic.description,
+            kanbans: [],
+        }));
+
+        return {
+            id: project.id,
+            name: project.name,
+            color: project.color,
+            description: project.description,
+            allowedUsers: [],
+            topics,
+        };
+    }));
+
+    return projects;
 }
 
-const projects: ProjectInterface[] = [testProject]; // Array of projects to pass
+interface jwtDecodedI extends JwtPayload {
+    user_id: number
+    user_email: string
+}
 
+// Внутри App()
 function App() {
-    const isAuth = true // Assuming authenticated for dashboard access
+    const isAuth = true;
+
+    const userDecoded: jwtDecodedI = jwtDecode(localStorage.getItem('accessToken') || "");
+
+    const user: UserInterface = {
+        id: userDecoded.user_id,
+        email: userDecoded.user_email,
+        name: "",
+        surname: "",
+        avatarUrl: "",
+    };
+
+    const [projects, setProjects] = useState<ProjectInterface[]>([]);
+
+    useEffect(() => {
+        const fetchProjects = async () => {
+            try {
+                const data = await getProjects(user.id);
+                setProjects(data);
+            } catch (error) {
+                console.error("Ошибка при получении проектов:", error);
+            }
+        };
+
+        fetchProjects();
+    }, [user.id]);
 
     return (
         <Router>
@@ -96,7 +132,6 @@ function App() {
                     <Route path="/auth/login" element={<LoginPage/>}/>
                     <Route path="/auth/register" element={<RegisterPage/>}/>
 
-                    {/* Route for the main dashboard */}
                     <Route
                         path="/dashboard"
                         element={
@@ -104,14 +139,12 @@ function App() {
                                 <CurrentTasksDashboard
                                     navMain={DefaultDashboardSidebarItems}
                                     projects={projects}
-                                    user={testUser}
+                                    user={user}
                                 />
                             </ProtectedRoute>
                         }
                     />
 
-                    {/* Route for a specific project topic */}
-                    {/* Note: Consider if you need a default topic redirect or a separate project overview route */}
                     <Route
                         path="/project/:projectName/topic/:topicName"
                         element={
@@ -119,46 +152,51 @@ function App() {
                                 <ProjectTopicDashboard
                                     navMain={DefaultDashboardSidebarItems}
                                     projects={projects}
-                                    user={testUser}
+                                    user={user}
                                 />
                             </ProtectedRoute>
                         }
                     />
 
-                    {/* NEW Route for navigating directly to a project by name */}
-                    {/* You might want to add logic in ProjectTopicDashboard to handle this route,
-                         e.g., redirect to the first topic or show a project overview */}
                     <Route
                         path="/project/:projectName"
                         element={
                             <ProtectedRoute isAuth={isAuth}>
-                                {/* Reusing ProjectTopicDashboard, adjust if needed */}
                                 <ProjectDashboard
                                     navMain={DefaultDashboardSidebarItems}
                                     projects={projects}
-                                    user={testUser}
+                                    user={user}
                                 />
                             </ProtectedRoute>
                         }
                     />
 
                     <Route
-
-                        path="/project/:projectName/:topicName"
+                        path="/project/create"
                         element={
                             <ProtectedRoute isAuth={isAuth}>
-                                {/* Reusing ProjectTopicDashboard, adjust if needed */}
-                                <ProjectTopicDashboard
+                                <CreateProjectDashboard
                                     navMain={DefaultDashboardSidebarItems}
                                     projects={projects}
-                                    user={testUser}
+                                    user={user}
                                 />
                             </ProtectedRoute>
                         }
                     />
 
+                    <Route
+                        path="/project/:projectName/:topicName"
+                        element={
+                            <ProtectedRoute isAuth={isAuth}>
+                                <ProjectTopicDashboard
+                                    navMain={DefaultDashboardSidebarItems}
+                                    projects={projects}
+                                    user={user}
+                                />
+                            </ProtectedRoute>
+                        }
+                    />
 
-                    {/* Route for dashboard settings */}
                     <Route
                         path="/dashboard/settings"
                         element={
@@ -166,17 +204,16 @@ function App() {
                                 <LocalSettingsDashboard
                                     navMain={DefaultDashboardSidebarItems}
                                     projects={projects}
-                                    user={testUser}
+                                    user={user}
                                 />
                             </ProtectedRoute>
                         }
                     />
                 </Routes>
             </div>
-            {/* Pass the projects data to the Command component */}
             {isAuth && <Command projects={projects}/>}
         </Router>
-    )
+    );
 }
 
 export default App;

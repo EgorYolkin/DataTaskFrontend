@@ -11,16 +11,17 @@ import {
     getFilteredRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    useReactTable, Row,
+    useReactTable,
+    Row,
 } from "@tanstack/react-table"
-import {ArrowUpDown, ChevronDown} from "lucide-react"
+import { ArrowUpDown, ChevronDown } from "lucide-react"
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import {Input} from "@/components/ui/input"
+import { Input } from "@/components/ui/input"
 import {
     Table,
     TableBody,
@@ -29,13 +30,13 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
-import {useTranslation} from "react-i18next";
-import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx";
+import { KanbanInterface, TaskInterface } from "@/interfaces/TasksInterfase.tsx"
+import { useTranslation } from "react-i18next";
+import { CheckStatus } from "@/components/internal/tasks/components/CheckStatus.tsx";
 
-const fuzzyFilter = (row: Row<TaskInterface>, columnId: number, filterValue: string) => {
+// Corrected fuzzyFilter function
+const fuzzyFilter = (row: Row<TaskInterface>, columnId: string, filterValue: string) => {
     console.log(columnId);
-
     const title = row.original.title?.toLowerCase() ?? "";
     const description = row.original.description?.toLowerCase() ?? "";
     const search = filterValue.toLowerCase();
@@ -48,7 +49,7 @@ export const columns: ColumnDef<TaskInterface>[] = [
     {
         id: "select",
         header: () => <></>,
-        cell: ({row}) => (
+        cell: ({ row }) => (
             <div>
                 <CheckStatus taskID={row.original.taskID} isCompleted={row.original.isCompleted}></CheckStatus>
             </div>
@@ -58,36 +59,36 @@ export const columns: ColumnDef<TaskInterface>[] = [
     },
     {
         accessorKey: "title",
-        filterFn: "fuzzy",
-        header: ({column}) => (
+        filterFn: fuzzyFilter, // Use the corrected function here
+        header: ({ column }) => (
             <div
                 className="flex items-center gap-2 cursor-pointer"
                 onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
             >
                 Task Title
-                <ArrowUpDown size="1em"/>
+                <ArrowUpDown size="1em" />
             </div>
         ),
-        cell: ({row}) => <div>{row.getValue("title")}</div>,
+        cell: ({ row }) => <div>{row.getValue("title")}</div>,
     },
     {
         accessorKey: "description",
         header: "Description",
-        cell: ({row}) => <div>{row.getValue("description")}</div>,
+        cell: ({ row }) => <div>{row.getValue("description")}</div>,
     },
     {
         accessorKey: "users",
         header: "Assigned Users",
-        cell: ({row}) => (
+        cell: ({ row }) => (
             <div>
                 {(row.getValue("users") as any[])?.map(user => user.name).join(", ") || ""}
             </div>
         ),
     },
-]
+];
 
 // Update component to receive KanbanInterface as props
-export function DashboardTasks({kanban}: { kanban: KanbanInterface }) {
+export function DashboardTasks({ kanban }: { kanban: KanbanInterface }) {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
@@ -112,7 +113,7 @@ export function DashboardTasks({kanban}: { kanban: KanbanInterface }) {
             rowSelection,
         },
         filterFns: {
-            fuzzy: fuzzyFilter,
+            fuzzy: fuzzyFilter, //  Pass the filter function here
         },
     })
 
@@ -130,7 +131,7 @@ export function DashboardTasks({kanban}: { kanban: KanbanInterface }) {
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                         <div className="flex items-center ml-auto cursor-pointer gap-2">
-                            Columns <ChevronDown size="1em"/>
+                            Columns <ChevronDown size="1em" />
                         </div>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
@@ -203,3 +204,4 @@ export function DashboardTasks({kanban}: { kanban: KanbanInterface }) {
         </div>
     )
 }
+

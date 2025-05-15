@@ -121,7 +121,7 @@ export const ChangeLanguageCombobox = () => {
                 <Command>
                     <CommandInput placeholder={t('Search language')} className="h-9"/>
                     <CommandList>
-                        <CommandEmpty>No framework found.</CommandEmpty>
+                        <CommandEmpty>No languages found.</CommandEmpty>
                         <CommandGroup>
                             {frameworks.map((framework) => (
                                 <CommandItem

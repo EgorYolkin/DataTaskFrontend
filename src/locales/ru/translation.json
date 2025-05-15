@@ -20,6 +20,13 @@
   "Vitaly": "Виталий",
   "Chernov": "Чернов",
 
+  "Create project": "Создать проект",
+  "Create": "Создать",
+
+  "Select parent project": "Выберите родительский проект",
+
+  "Come up with a description": "Придумайте описание",
+
   "Invalid URL": "Некорректный маршрут",
   "Please provide a valid project and topic in the URL.": "Укажите корректный",
 

@@ -18,8 +18,7 @@ import {Input} from "@/components/ui/input.tsx";
 import {CreateTaskFormCombobox} from "@/components/internal/forms/CreateTaskFormCombobox.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {SendHorizontal} from "lucide-react";
-import {DashboardTasks} from "@/components/internal/tasks/DashboardTasks.tsx";
-import {DefaultKanban} from "@/App.tsx";
+// import {DashboardTasks} from "@/components/internal/tasks/DashboardTasks.tsx";
 import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
@@ -73,7 +72,7 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({nav
                             <Separator orientation="horizontal" className="mr-2 h-4 "/>
                         </div>
                         <div className="flex justify-center gap-2">
-                            <DashboardTasks kanban={DefaultKanban}/>
+                            {/*<DashboardTasks  kanban={projects[0].kanban} />*/}
                         </div>
                     </div>
                 </div>

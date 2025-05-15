@@ -1,5 +1,5 @@
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
-import {CheckIcon, LucideIcon, Settings2} from "lucide-react";
+import {CheckIcon, LucideIcon, Settings2, PlusIcon} from "lucide-react";
 
 export interface DashboardSidebarItemInterface {
     title: string;
@@ -24,6 +24,12 @@ export const DefaultDashboardSidebarItems: DashboardSidebarItemInterface[] = [
         title: "Settings",
         url: "/dashboard/settings",
         icon: Settings2,
+        isActive: false,
+    },
+    {
+        title: "Create project",
+        url: "/project/create",
+        icon: PlusIcon,
         isActive: false,
     }
 ]

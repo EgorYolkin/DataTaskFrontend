@@ -1,8 +1,6 @@
 "use client"
 
 import {
-    BadgeCheck,
-    Bell,
     ChevronsUpDown,
     LogOut,
 } from "lucide-react"
@@ -15,7 +13,6 @@ import {
 import {
     DropdownMenu,
     DropdownMenuContent,
-    DropdownMenuGroup,
     DropdownMenuItem,
     DropdownMenuLabel,
     DropdownMenuSeparator,
@@ -71,17 +68,6 @@ export function NavUser({user}: { user: UserInterface }) {
                                 </div>
                             </div>
                         </DropdownMenuLabel>
-                        <DropdownMenuSeparator/>
-                        <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <BadgeCheck/>
-                                {t('Account')}
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                                <Bell/>
-                                {t('Notifications')}
-                            </DropdownMenuItem>
-                        </DropdownMenuGroup>
                         <DropdownMenuSeparator/>
                         <DropdownMenuItem>
                             <LogOut/>
