@@ -172,7 +172,7 @@ function App() {
     let user: UserInterface = {
         id: 0,
         email: "",
-        name: 0,
+        name: "",
         surname: "",
         avatarUrl: "",
     };
@@ -180,10 +180,13 @@ function App() {
     if (localStorage.getItem('accessToken')) {
         const userDecoded: jwtDecodedI = jwtDecode(localStorage.getItem('accessToken') || "");
         isAuth = true;
+
+        const userIdStr = String(userDecoded.user_id);
+
         user = {
             id: userDecoded.user_id,
             email: userDecoded.user_email,
-            name: userDecoded.user_id,
+            name: userIdStr,
             surname: "",
             avatarUrl: "",
         };

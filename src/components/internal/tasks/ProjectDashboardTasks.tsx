@@ -32,6 +32,7 @@ import {useTranslation} from "react-i18next"
 import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx"
 import {TrashIcon} from "lucide-react";
 import {useCallback} from "react";
+import {UserInterface} from "@/interfaces/UserInterface.tsx";
 
 interface KanbanNameHeaderMeta {
     kanban: KanbanInterface
@@ -103,9 +104,9 @@ function getColumns(): ColumnDef<TaskInterface>[] {
                         {task.title}
                         <div className="flex flex-wrap gap-2 text-white">
                             {task.users && Array.isArray(task.users) && (
-                                task.users.map((user) => (
+                                task.users.map((user: UserInterface) => (
                                     <Avatar key={user.id} className="w-6 h-6">
-                                        <AvatarImage src={user.avatarUrl} alt={user.name}/>
+                                        <AvatarImage src={user.avatarUrl}/>
                                         <AvatarFallback className="bg-gray-600">
                                             {user.name[0] + user.surname[0]}
                                         </AvatarFallback>

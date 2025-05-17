@@ -18,7 +18,6 @@ import {
 } from "@/components/ui/sidebar";
 import {AppSidebar} from "@/components/internal/dashboard/AppSidebar.tsx";
 import {useTranslation} from "react-i18next";
-import {Badge} from "@/components/ui/badge";
 import {ProjectDashboardTasks} from "@/components/internal/tasks/ProjectDashboardTasks.tsx";
 import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
@@ -35,7 +34,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input.tsx";
-import {User2, UserPlus} from "lucide-react";
+import {UserPlus} from "lucide-react";
 import {toast} from "sonner";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
 
