@@ -4,11 +4,11 @@ import {RegisterPage} from "@/pages/authorization/RegisterPage.tsx"
 import {BrowserRouter as Router, Routes, Route} from "react-router-dom"
 import './i18n'
 import {CurrentTasksDashboard} from "@/pages/dashboard/CurrentTasksDashboard.tsx"
-import {Command} from "@/components/internal/command/CommandDialog.tsx" // Correct import
+import {Command} from "@/components/internal/command/CommandDialog.tsx"
 import {LocalSettingsDashboard} from "@/pages/dashboard/LocalSettingsDashboard.tsx"
 import {ProjectTopicDashboard} from "@/pages/dashboard/ProjectTopicDashboard.tsx"
 import {Navigate} from "react-router-dom"
-import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx" // Import ProjectInterface
+import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx"
 import {UserInterface} from "@/interfaces/UserInterface.tsx"
 import {DefaultDashboardSidebarItems} from "@/interfaces/DashboardSidebarInterface.tsx"
 import {ProjectDashboard} from "@/pages/dashboard/ProjectDashboard.tsx";
@@ -16,7 +16,9 @@ import {CreateProjectDashboard} from "@/pages/dashboard/CreateProjectDashboard.t
 import {jwtDecode, JwtPayload} from "jwt-decode";
 import React, {useState, useEffect} from 'react';
 import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx";
-import {FetchResponse} from "@/interfaces/FetchResponse.tsx"; // Import useState and useEffect
+import {FetchResponse} from "@/interfaces/FetchResponse.tsx";
+import {AcceptInvitationDashboard} from "@/pages/dashboard/AcceptInvitationDashboard.tsx";
+import {Toaster} from "@/components/ui/sonner"
 
 export function ProtectedRoute({isAuth, children}: { isAuth: boolean; children: React.ReactNode }) {
     if (!isAuth) {
@@ -25,246 +27,138 @@ export function ProtectedRoute({isAuth, children}: { isAuth: boolean; children: 
     return <>{children}</>
 }
 
-async function getSharedProjects(userID: number): Promise<ProjectInterface[]> {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    const apiVersion = import.meta.env.VITE_API_VERSION;
+const apiUrl = import.meta.env.VITE_API_URL;
+const apiVersion = import.meta.env.VITE_API_VERSION;
 
-    const response = await fetch(`${apiUrl}/api/${apiVersion}/user_shared_projects/${userID}`, {
-        method: "GET",
-        credentials: 'include',
-        headers: {
-            "Authorization": localStorage.getItem("accessToken") || "",
-            "Content-Type": "application/json",
-        },
+const createHeaders = () => ({
+    Authorization: localStorage.getItem("accessToken") || "",
+    "Content-Type": "application/json",
+});
+
+const fetchWithErrorHandling = async (
+    url: string,
+    method: string = "GET"
+) => {
+    const response = await fetch(url, {
+        method,
+        credentials: "include",
+        headers: createHeaders(),
     });
 
     if (!response.ok) {
-        let errorData;
         try {
-            errorData = await response.json();
-            console.error("Ошибка от сервера:", errorData);
-            throw new Error(errorData?.message || `Ошибка получения проектов: ${response.status}`);
+            const errorData = await response.json();
+            console.error("Server error:", errorData);
+            throw new Error(
+                errorData?.message || `Request failed: ${response.status}`
+            );
         } catch (e) {
-            console.error("Ошибка при обработке ответа об ошибке:", e);
-            throw new Error(`Ошибка получения проектов: ${response.status}`);
+            console.error("Error parsing response:", e);
+            throw new Error(`Request failed: ${response.status}`);
         }
     }
 
-    const responseData: FetchResponse = await response.json();
-    const projectsRaw: any = responseData.data;
+    return response.json();
+};
 
-    const projects: ProjectInterface[] = await Promise.all(projectsRaw.map(async (project: any) => {
-        const subtopicsResp = await fetch(`${apiUrl}/api/${apiVersion}/project_subprojects/${project.id}`, {
-            method: "GET",
-            credentials: 'include',
-            headers: {
-                "Authorization": localStorage.getItem("accessToken") || "",
-                "Content-Type": "application/json",
-            },
-        });
+const fetchProjectUsers = async (projectId: number): Promise<UserInterface[]> => {
+    try {
+        const response: FetchResponse = await fetchWithErrorHandling(
+            `${apiUrl}/api/${apiVersion}/project_users/${projectId}`
+        );
+        return response.data || [];
+    } catch (err) {
+        console.warn(`Failed to fetch users for project ${projectId}`);
+        return [];
+    }
+};
 
-        let subtopicsData = [];
-        if (subtopicsResp.ok) {
-            const subtopicsJson = await subtopicsResp.json();
-            subtopicsData = subtopicsJson.data || [];
-        } else {
-            console.warn(`Не удалось получить субтопики для проекта ID ${project.id}`);
-        }
+const processTopic = async (topic: any): Promise<any> => {
+    let kanbans: KanbanInterface[] = [];
 
-        const topics = await Promise.all(subtopicsData.map(async (topic: any) => {
-            let kanbans: KanbanInterface[] = [];
+    try {
+        const kanbanResponse: FetchResponse = await fetchWithErrorHandling(
+            `${apiUrl}/api/${apiVersion}/kanban/project/${topic.id}`
+        );
+        const kanbansRaw = Array.isArray(kanbanResponse.data)
+            ? kanbanResponse.data
+            : kanbanResponse.data
+                ? [kanbanResponse.data]
+                : [];
 
-            try {
-                const kanbanResp = await fetch(`${apiUrl}/api/${apiVersion}/kanban/project/${topic.id}`, {
-                    method: "GET",
-                    credentials: 'include',
-                    headers: {
-                        "Authorization": localStorage.getItem("accessToken") || "",
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (kanbanResp.ok) {
-                    const kanbanJson = await kanbanResp.json();
-                    const kanbansRaw = Array.isArray(kanbanJson.data) ? kanbanJson.data : (kanbanJson.data ? [kanbanJson.data] : []);
-
-                    kanbans = await Promise.all(kanbansRaw.map(async (kanban: any) => {
-                        let tasks: TaskInterface[] = [];
-                        try {
-                            const tasksResp = await fetch(`${apiUrl}/api/${apiVersion}/kanban_tasks/${kanban.id}`, {
-                                method: "GET",
-                                credentials: 'include',
-                                headers: {
-                                    "Authorization": localStorage.getItem("accessToken") || "",
-                                    "Content-Type": "application/json",
-                                },
-                            });
-
-                            if (tasksResp.ok) {
-                                const tasksJson = await tasksResp.json();
-                                tasks = tasksJson.data || [];
-
-                                console.log(tasks);
-                            } else {
-                                console.warn(`Не удалось получить задачи для канбана ${kanban.id}`);
-                            }
-                        } catch (err) {
-                            console.error("Ошибка при получении задач:", err);
-                        }
-                        return {
-                            id: kanban.id,
-                            name: kanban.name,
-                            tasks: tasks,
-                        };
-                    }));
-                } else {
-                    console.warn(`Не удалось получить канбаны для topic ${topic.id}`);
+        kanbans = await Promise.all(
+            kanbansRaw.map(async (kanban: any) => {
+                let tasks: TaskInterface[] = [];
+                try {
+                    const tasksResponse: FetchResponse = await fetchWithErrorHandling(
+                        `${apiUrl}/api/${apiVersion}/kanban_tasks/${kanban.id}`
+                    );
+                    tasks = tasksResponse.data || [];
+                } catch (err) {
+                    console.warn(`Failed to fetch tasks for kanban ${kanban.id}`);
                 }
-            } catch (err) {
-                console.error("Ошибка при получении канбанов:", err);
-            }
+                return {
+                    id: kanban.id,
+                    name: kanban.name,
+                    tasks,
+                };
+            })
+        );
+    } catch (err) {
+        console.warn(`Failed to fetch kanbans for topic ${topic.id}`);
+    }
 
-            return {
-                id: topic.id,
-                name: topic.name,
-                color: topic.color,
-                description: topic.description,
-                kanbans,
-            };
-        }));
+    return {
+        id: topic.id,
+        name: topic.name,
+        color: topic.color,
+        description: topic.description,
+        kanbans,
+    };
+};
 
-        return {
-            id: project.id,
-            name: project.name,
-            color: project.color,
-            description: project.description,
-            allowedUsers: [],
-            topics,
-        };
-    }));
+const processProject = async (project: any): Promise<ProjectInterface> => {
+    let subtopicsData: any[] = [];
+    try {
+        const subtopicsResponse: FetchResponse = await fetchWithErrorHandling(
+            `${apiUrl}/api/${apiVersion}/project_subprojects/${project.id}`
+        );
+        subtopicsData = subtopicsResponse.data || [];
+    } catch (err) {
+        console.warn(`Failed to fetch subtopics for project ${project.id}`);
+    }
 
-    return projects;
-}
+    const allowedUsers: UserInterface[] = await fetchProjectUsers(project.id);
+    const topics = await Promise.all(subtopicsData.map(processTopic));
+
+    return {
+        id: project.id,
+        name: project.name,
+        color: project.color,
+        description: project.description,
+        allowedUsers: allowedUsers,
+        topics,
+    };
+};
 
 async function getProjects(userID: number): Promise<ProjectInterface[]> {
-    const apiUrl = import.meta.env.VITE_API_URL;
-    const apiVersion = import.meta.env.VITE_API_VERSION;
+    const response: FetchResponse = await fetchWithErrorHandling(
+        `${apiUrl}/api/${apiVersion}/user_projects/${userID}`
+    );
+    const projectsRaw = response.data || [];
 
-    const response = await fetch(`${apiUrl}/api/${apiVersion}/user_projects/${userID}`, {
-        method: "GET",
-        credentials: 'include',
-        headers: {
-            "Authorization": localStorage.getItem("accessToken") || "",
-            "Content-Type": "application/json",
-        },
-    });
+    return Promise.all(projectsRaw.map(processProject));
+}
 
-    if (!response.ok) {
-        let errorData;
-        try {
-            errorData = await response.json();
-            console.error("Ошибка от сервера:", errorData);
-            throw new Error(errorData?.message || `Ошибка получения проектов: ${response.status}`);
-        } catch (e) {
-            console.error("Ошибка при обработке ответа об ошибке:", e);
-            throw new Error(`Ошибка получения проектов: ${response.status}`);
-        }
-    }
+async function getSharedProjects(
+    userID: number
+): Promise<ProjectInterface[]> {
+    const response: FetchResponse = await fetchWithErrorHandling(
+        `${apiUrl}/api/${apiVersion}/user_shared_projects/${userID}`
+    );
+    const projectsRaw = response.data || [];
 
-    const responseData = await response.json();
-    const projectsRaw = responseData.data;
-
-    const projects: ProjectInterface[] = await Promise.all(projectsRaw.map(async (project: any) => {
-        const subtopicsResp = await fetch(`${apiUrl}/api/${apiVersion}/project_subprojects/${project.id}`, {
-            method: "GET",
-            credentials: 'include',
-            headers: {
-                "Authorization": localStorage.getItem("accessToken") || "",
-                "Content-Type": "application/json",
-            },
-        });
-
-        let subtopicsData = [];
-        if (subtopicsResp.ok) {
-            const subtopicsJson = await subtopicsResp.json();
-            subtopicsData = subtopicsJson.data || [];
-        } else {
-            console.warn(`Не удалось получить субтопики для проекта ID ${project.id}`);
-        }
-
-        const topics = await Promise.all(subtopicsData.map(async (topic: any) => {
-            let kanbans: KanbanInterface[] = [];
-
-            try {
-                const kanbanResp = await fetch(`${apiUrl}/api/${apiVersion}/kanban/project/${topic.id}`, {
-                    method: "GET",
-                    credentials: 'include',
-                    headers: {
-                        "Authorization": localStorage.getItem("accessToken") || "",
-                        "Content-Type": "application/json",
-                    },
-                });
-
-                if (kanbanResp.ok) {
-                    const kanbanJson = await kanbanResp.json();
-                    const kanbansRaw = Array.isArray(kanbanJson.data) ? kanbanJson.data : (kanbanJson.data ? [kanbanJson.data] : []);
-
-                    kanbans = await Promise.all(kanbansRaw.map(async (kanban: any) => {
-                        let tasks: TaskInterface[] = [];
-                        try {
-                            const tasksResp = await fetch(`${apiUrl}/api/${apiVersion}/kanban_tasks/${kanban.id}`, {
-                                method: "GET",
-                                credentials: 'include',
-                                headers: {
-                                    "Authorization": localStorage.getItem("accessToken") || "",
-                                    "Content-Type": "application/json",
-                                },
-                            });
-
-                            if (tasksResp.ok) {
-                                const tasksJson = await tasksResp.json();
-                                tasks = tasksJson.data || [];
-
-                                console.log(tasks);
-                            } else {
-                                console.warn(`Не удалось получить задачи для канбана ${kanban.id}`);
-                            }
-                        } catch (err) {
-                            console.error("Ошибка при получении задач:", err);
-                        }
-                        return {
-                            id: kanban.id,
-                            name: kanban.name,
-                            tasks: tasks,
-                        };
-                    }));
-                } else {
-                    console.warn(`Не удалось получить канбаны для topic ${topic.id}`);
-                }
-            } catch (err) {
-                console.error("Ошибка при получении канбанов:", err);
-            }
-
-            return {
-                id: topic.id,
-                name: topic.name,
-                color: topic.color,
-                description: topic.description,
-                kanbans,
-            };
-        }));
-
-        return {
-            id: project.id,
-            name: project.name,
-            color: project.color,
-            description: project.description,
-            allowedUsers: [],
-            topics,
-        };
-    }));
-
-    return projects;
+    return Promise.all(projectsRaw.map(processProject));
 }
 
 interface jwtDecodedI extends JwtPayload {
@@ -278,7 +172,7 @@ function App() {
     let user: UserInterface = {
         id: 0,
         email: "",
-        name: "",
+        name: 0,
         surname: "",
         avatarUrl: "",
     };
@@ -295,11 +189,9 @@ function App() {
         };
     }
 
-
     const [projects, setProjects] = useState<ProjectInterface[]>([]);
     const [sharedProjects, setSharedProjects] = useState<ProjectInterface[]>([]);
     const [loading, setLoading] = useState(true);
-    // const location = useLocation();
     const [fadeClass, setFadeClass] = useState('fade-in active');
 
     useEffect(() => {
@@ -335,12 +227,12 @@ function App() {
 
         fetchProjects();
         fetchSharedProjects();
-
-    }, [user.id, location.pathname]);
+    }, [user.id]);
 
     return (
         <Router>
             <div className={`w-[100vw] ${fadeClass}`}>
+                <Toaster/>
                 {loading ? (
                     <div className="fixed top-0 left-0 w-full h-full bg-white flex justify-center items-center z-50">
                         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
@@ -355,6 +247,20 @@ function App() {
                             element={
                                 <ProtectedRoute isAuth={isAuth}>
                                     <CurrentTasksDashboard
+                                        navMain={DefaultDashboardSidebarItems}
+                                        projects={projects}
+                                        sharedProjects={sharedProjects}
+                                        user={user}
+                                    />
+                                </ProtectedRoute>
+                            }
+                        />
+
+                        <Route
+                            path="/project/:projectID/invite/accept"
+                            element={
+                                <ProtectedRoute isAuth={isAuth}>
+                                    <AcceptInvitationDashboard
                                         navMain={DefaultDashboardSidebarItems}
                                         projects={projects}
                                         sharedProjects={sharedProjects}

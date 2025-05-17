@@ -20,7 +20,7 @@ import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx"
 import {UserInterface} from "@/interfaces/UserInterface.tsx"
 import {KanbanInterface} from "@/interfaces/TasksInterfase.tsx"
 import {Button} from "@/components/ui/button.tsx";
-import React from 'react'; // Import React
+import React from 'react';
 
 interface ProjectDashboardProps {
     navMain: DashboardSidebarItemInterface[]
@@ -33,7 +33,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
     const {projectName, topicName} = useParams<{ projectName?: string; topicName?: string }>();
     const [t] = useTranslation();
 
-    // Validate route parameters
     if (!projectName) {
         return (
             <SidebarProvider>
@@ -67,94 +66,13 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
         );
     }
 
-    if (topicName === undefined) {
-        const project = projects.find((p) => p.name.toLowerCase() === projectName.toLowerCase());
-        if (!project) {
-            return (
-                <SidebarProvider>
-                    <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
-                    <SidebarInset>
-                        <header className="flex h-16 shrink-0 items-center gap-2">
-                            <div className="flex items-center gap-2 px-5">
-                                <SidebarTrigger className="-ml-1"/>
-                                <Separator orientation="vertical" className="mr-2 h-4"/>
-                                <Breadcrumb>
-                                    <BreadcrumbList>
-                                        <BreadcrumbItem className="hidden md:block">
-                                            <BreadcrumbLink href="#">{t("Review")}</BreadcrumbLink>
-                                        </BreadcrumbItem>
-                                        <BreadcrumbSeparator className="hidden md:block"/>
-                                        <BreadcrumbItem>
-                                            <BreadcrumbPage>{t("Not Found")}</BreadcrumbPage>
-                                        </BreadcrumbItem>
-                                    </BreadcrumbList>
-                                </Breadcrumb>
-                            </div>
-                        </header>
-                        <div className="flex items-center justify-center w-full p-[20px]">
-                            <div className="text-center">
-                                <h2 className="text-2xl font-semibold">{t("Project Not Found")}</h2>
-                                <p>{t("Please check the URL or select a valid project.")}</p>
-                            </div>
-                        </div>
-                    </SidebarInset>
-                </SidebarProvider>
-            );
-        }
+    let project = projects.find((p) => p.name.toLowerCase() === projectName.toLowerCase());
 
-        return (
-            <SidebarProvider>
-                <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
-                <SidebarInset>
-                    <header className="flex h-16 shrink-0 items-center gap-2">
-                        <div className="flex items-center gap-2 px-5">
-                            <SidebarTrigger className="-ml-1"/>
-                            <Separator orientation="vertical" className="mr-2 h-4"/>
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem className="hidden md:block">
-                                        <BreadcrumbLink href="#">{t("Review")}</BreadcrumbLink>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator className="hidden md:block"/>
-                                    <BreadcrumbItem>
-                                        <BreadcrumbPage>
-                                            {project.name}
-                                        </BreadcrumbPage>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                        </div>
-                    </header>
-                    <div className="flex items-center justify-center w-full p-[20px]">
-                        <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
-                            <div className="flex-col m-[20px] mb-0">
-                            <span className="text-2xl font-semibold flex items-center gap-3">
-                                {project.name}
-                            </span>
-                                <span>
-                                    {project.description}
-                                </span>
-                                <br/><br/>
-                                <div className="flex gap-1">
-                                    <Badge>#{t("Project")}</Badge>
-                                    <Badge>#{project.name}</Badge>
-                                </div>
-                                <br/>
-                                <DeleteProjectDialog projectID={project.id}></DeleteProjectDialog>
-                                <br/>
-                            </div>
-
-                        </div>
-                    </div>
-                </SidebarInset>
-            </SidebarProvider>
-        );
+    if (!project) {
+        project = sharedProjects.find((p) => p.name.toLowerCase() === projectName.toLowerCase());
     }
 
-    const project = projects.find((p) => p.name.toLowerCase() === projectName.toLowerCase());
-    const topic = project?.topics.find((t) => t.name.toLowerCase() === topicName.toLowerCase());
-
-    if (!project || !topic) {
+    if (!project) {
         return (
             <SidebarProvider>
                 <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
@@ -178,8 +96,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
                     </header>
                     <div className="flex items-center justify-center w-full p-[20px]">
                         <div className="text-center">
-                            <h2 className="text-2xl font-semibold">{t("Project or Topic Not Found")}</h2>
-                            <p>{t("Please check the URL or select a valid project and topic.")}</p>
+                            <h2 className="text-2xl font-semibold">{t("Project Not Found")}</h2>
+                            <p>{t("Please check the URL or select a valid project.")}</p>
                         </div>
                     </div>
                 </SidebarInset>
@@ -187,8 +105,108 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
         );
     }
 
-    const kanbans: KanbanInterface[] = topic.kanbans || [];
+    // If topicName exists, we are on the subproject/topic page
+    if (topicName) {
+        const topic = project.topics.find((t) => t.name.toLowerCase() === topicName.toLowerCase());
 
+        if (!topic) {
+            return (
+                <SidebarProvider>
+                    <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
+                    <SidebarInset>
+                        <header className="flex h-16 shrink-0 items-center gap-2">
+                            <div className="flex items-center gap-2 px-5">
+                                <SidebarTrigger className="-ml-1"/>
+                                <Separator orientation="vertical" className="mr-2 h-4"/>
+                                <Breadcrumb>
+                                    <BreadcrumbList>
+                                        <BreadcrumbItem className="hidden md:block">
+                                            <BreadcrumbLink href="#">{t("Review")}</BreadcrumbLink>
+                                        </BreadcrumbItem>
+                                        <BreadcrumbSeparator className="hidden md:block"/>
+                                        <BreadcrumbItem>
+                                            <BreadcrumbPage>{t("Not Found")}</BreadcrumbPage>
+                                        </BreadcrumbItem>
+                                    </BreadcrumbList>
+                                </Breadcrumb>
+                            </div>
+                        </header>
+                        <div className="flex items-center justify-center w-full p-[20px]">
+                            <div className="text-center">
+                                <h2 className="text-2xl font-semibold">{t("Topic Not Found")}</h2>
+                                <p>{t("Please check the URL or select a valid topic.")}</p>
+                            </div>
+                        </div>
+                    </SidebarInset>
+                </SidebarProvider>
+            );
+        }
+
+        const kanbans: KanbanInterface[] = topic.kanbans || [];
+
+        return (
+            <SidebarProvider>
+                <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
+                <SidebarInset>
+                    <header className="flex h-16 shrink-0 items-center gap-2">
+                        <div className="flex items-center gap-2 px-5">
+                            <SidebarTrigger className="-ml-1"/>
+                            <Separator orientation="vertical" className="mr-2 h-4"/>
+                            <Breadcrumb>
+                                <BreadcrumbList>
+                                    <BreadcrumbItem className="hidden md:block">
+                                        <BreadcrumbLink href="#">{t("Review")}</BreadcrumbLink>
+                                    </BreadcrumbItem>
+                                    <BreadcrumbSeparator className="hidden md:block"/>
+                                    <BreadcrumbItem>
+                                        <BreadcrumbPage>{project.name} / {topic.name}</BreadcrumbPage>
+                                    </BreadcrumbItem>
+                                </BreadcrumbList>
+                            </Breadcrumb>
+                        </div>
+                    </header>
+                    <div className="flex items-center justify-center w-full p-[20px]">
+                        <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
+                            <div className="flex-col m-[20px] mb-0">
+                                <span className="text-2xl font-semibold flex items-center gap-3">
+                                    {topic.name} ({project.name})
+                                </span>
+                                <span>
+                                    {project.description}
+                                </span>
+                                <br/><br/>
+                                <div className="flex gap-1">
+                                    <Badge>#{t("Project")}</Badge>
+                                    <Badge>#{topic.name}</Badge>
+                                </div>
+                            </div>
+                            <Separator orientation="horizontal" className="mr-2 h-4"/>
+                            <div className="p-5 mt-[-20px]">
+                                <span className="text-2xl font-semibold flex items-center gap-3">
+                                    {t("Kanban")} - {topic.name}
+                                </span>
+                                <div className="flex gap-5 overflow-auto max-w-[100vw]">
+                                    {kanbans.length > 0 ? (
+                                        kanbans.map((kanban) => (
+                                            <ProjectDashboardTasks onKanbanNameChange={() => {
+                                            }} key={kanban.name} kanban={kanban}/>
+                                        ))
+                                    ) : (
+                                        <p>{t("No Kanban boards found for this topic.")}</p>
+                                    )}
+                                    <div className="items-center justify-center mt-[32px]">
+                                        <Button>Create kanban</Button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </SidebarInset>
+            </SidebarProvider>
+        );
+    }
+
+    // If only projectName exists, we are on the project page
     return (
         <SidebarProvider>
             <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
@@ -204,7 +222,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
                                 </BreadcrumbItem>
                                 <BreadcrumbSeparator className="hidden md:block"/>
                                 <BreadcrumbItem>
-                                    <BreadcrumbPage>{project.name} / {topic.name}
+                                    <BreadcrumbPage>
+                                        {project.name}
                                     </BreadcrumbPage>
                                 </BreadcrumbItem>
                             </BreadcrumbList>
@@ -215,7 +234,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
                     <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
                         <div className="flex-col m-[20px] mb-0">
                             <span className="text-2xl font-semibold flex items-center gap-3">
-                                {topic.name} ({project.name})
+                                {project.name}
                             </span>
                             <span>
                                 {project.description}
@@ -223,27 +242,11 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
                             <br/><br/>
                             <div className="flex gap-1">
                                 <Badge>#{t("Project")}</Badge>
-                                <Badge>#{topic.name}</Badge>
+                                <Badge>#{project.name}</Badge>
                             </div>
-                        </div>
-                        <Separator orientation="horizontal" className="mr-2 h-4"/>
-                        <div className="p-5 mt-[-20px]">
-                            <span className="text-2xl font-semibold flex items-center gap-3">
-                                {t("Kanban")} - {topic.name}
-                            </span>
-                            <div className="flex gap-5 overflow-auto max-w-[100vw]">
-                                {kanbans.length > 0 ? (
-                                    kanbans.map((kanban) => (
-                                        <ProjectDashboardTasks onKanbanNameChange={() => {
-                                        }} key={kanban.name} kanban={kanban}/>
-                                    ))
-                                ) : (
-                                    <p>{t("No Kanban boards found for this topic.")}</p>
-                                )}
-                                <div className="items-center justify-center mt-[32px]">
-                                    <Button>Create kanban</Button>
-                                </div>
-                            </div>
+                            <br/>
+                            <DeleteProjectDialog projectID={project.id}></DeleteProjectDialog>
+                            <br/>
                         </div>
                     </div>
                 </div>

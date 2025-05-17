@@ -26,14 +26,12 @@ import {
 import {useTranslation} from "react-i18next"
 import {UserInterface} from "@/interfaces/UserInterface.tsx"
 
-import Cookies from "js-cookie";
 
 export function NavUser({user}: { user: UserInterface }) {
     const {isMobile} = useSidebar()
     const [t] = useTranslation()
 
     const fullName = `${user.name} ${user.surname}`
-    const initials = `${user.name[0]}${user.surname[0]}`
 
     return (
         <SidebarMenu>
@@ -46,7 +44,6 @@ export function NavUser({user}: { user: UserInterface }) {
                                 <AvatarFallback className="rounded-lg bg-blue-200">#{fullName}</AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                {/*<span className="truncate font-semibold">{fullName}</span>*/}
                                 <span className="truncate text-xs">{user.email}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4"/>
@@ -73,7 +70,6 @@ export function NavUser({user}: { user: UserInterface }) {
                         <DropdownMenuSeparator/>
                         <DropdownMenuItem onClick={() => {
                             localStorage.removeItem("accessToken");
-                            Cookies.remove("refresh_token");
                             window.location.reload();
 
                         }}>

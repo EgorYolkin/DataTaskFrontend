@@ -4,7 +4,7 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useTranslation} from "react-i18next";
 import React, {useState, useCallback} from "react";
-import {FetchResponse, fetchResponse} from "@/interfaces/FetchResponse.tsx";
+import {FetchResponse} from "@/interfaces/FetchResponse.tsx";
 
 interface RegisterFormProps extends Omit<React.ComponentPropsWithoutRef<"form">, "onError"> {
     onSuccess?: () => void;

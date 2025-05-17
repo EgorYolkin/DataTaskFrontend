@@ -64,6 +64,12 @@
 
   "Shared projects": "Совместные проекты",
 
+  "Accept project invite": "Принятие приглашения в проект",
+  "Invite accepted": "Приглашение принято",
+
+  "Successfully invited invitation": "Приглашение отправлено",
+  "Invitation created. The user must click on the link to join the project": "Invitation created. The user must click on the link to join the project",
+
   "Type a command or search": "Введите команду или запрос",
 
   "Delete task": "Удалить задачу",

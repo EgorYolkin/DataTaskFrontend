@@ -32,6 +32,7 @@ export function NavProjects({items}: { items: ProjectNavItem[] }) {
     const [t] = useTranslation();
 
     // Отфильтровываем элементы, у которых есть подпроекты (items)
+    // @ts-ignore
     const mainProjects = items.filter(item => item.items?.length > 0);
 
     return (
