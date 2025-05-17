@@ -13,14 +13,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import {Circle, CircleCheck} from "lucide-react"
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar"
-import {Badge} from "@/components/ui/badge"
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-} from "@/components/ui/dropdown-menu"
 import {
     Table,
     TableBody,
@@ -32,380 +25,533 @@ import {
 import {
     Dialog,
     DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogDescription,
 } from "@/components/ui/dialog"
-import {Input} from "@/components/ui/input" // Make sure Input is imported
-import {Button} from "@/components/ui/button"
+import {Input} from "@/components/ui/input"
 import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
 import {useTranslation} from "react-i18next"
-import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx";
+import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx"
+import {TrashIcon} from "lucide-react";
+import {useCallback} from "react";
 
-interface Comment {
-    id: number
-    text: string
-    user: string
-    timestamp: string
-}
-
-// Define the props needed for the Kanban name header cell
 interface KanbanNameHeaderMeta {
-    kanban: KanbanInterface;
-    isEditing: boolean;
-    editingName: string;
-    startEditing: () => void;
-    saveEditing: () => void;
-    cancelEditing: () => void;
-    setEditingName: (name: string) => void; // Add setter for input change
+    kanban: KanbanInterface
+    isEditing: boolean
+    editingName: string
+    startEditing: () => void
+    saveEditing: () => void
+    cancelEditing: () => void
+    setEditingName: (name: string) => void
 }
 
-// Define the columns outside the component, using meta
-export const columns: ColumnDef<TaskInterface>[] = [
-    {
-        accessorKey: "title",
-        header: ({table}) => {
-            // Access the meta object provided to the table
-            const meta = table.options.meta as KanbanNameHeaderMeta;
-
-            // Render input if editing, otherwise render clickable div
-            if (meta.isEditing) {
-                return (
-                    <Input
-                        value={meta.editingName}
-                        onChange={(e) => meta.setEditingName(e.target.value)} // Update state on input change
-                        onBlur={meta.saveEditing} // Save when input loses focus
-                        onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault(); // Prevent default form submission
-                                meta.saveEditing(); // Save on Enter key
-                            } else if (e.key === 'Escape') {
-                                e.preventDefault(); // Prevent default Escape behavior
-                                meta.cancelEditing(); // Cancel on Escape key
-                            }
-                        }}
-                        autoFocus // Automatically focus the input when it appears
-                        className="h-6 text-sm p-1 w-full" // Basic styling, adjust as needed
-                        // Optional: Prevent click propagation that might interfere
-                        onClick={(e) => e.stopPropagation()}
-                    />
-                );
-            }
-
-            // Display the Kanban name when not editing, make it clickable
-            return (
-                <div
-                    className="cursor-pointer font-bold hover:opacity-80" // Add cursor and hover effect
-                    onClick={meta.startEditing} // Start editing on click
-                >
-                    {/* Display the currently edited name (or original if not edited yet) */}
-                    {meta.editingName || meta.kanban?.name || "Backlog"}
-                </div>
-            );
-        },
-        cell: ({row}) => {
-            const task = row.original
-            return (
-                <div className="font-medium text-wrap flex flex-col gap-2 justify-center">
-                    {task.title}
-                    <div className="flex flex-wrap gap-2 text-white">
-                        {task.users.map((user) => (
-                            <Avatar key={user.id} className="w-6 h-6"> {/* Add key */}
-                                <AvatarImage src={user.avatarUrl} alt={user.name}/>
-                                <AvatarFallback className="bg-gray-600">
-                                    {user.name[0] + user.surname[0]}
-                                </AvatarFallback>
-                            </Avatar>
-                        ))}
-                    </div>
-                </div>
-            )
-        },
-    },
-    {
-        id: "select",
-        header: () => <></>,
-        cell: ({row}) => (
-            <div>
-                <CheckStatus taskID={row.original.taskID} isCompleted={row.original.isCompleted}></CheckStatus>
-            </div>
-        ),
-        enableSorting: false,
-        enableHiding: false,
-    },
-]
-
-// Define the props interface for ProjectDashboardTasks, including the new prop
-interface ProjectDashboardTasksProps {
-    kanban: KanbanInterface;
-    // Callback function to notify parent of name change
-    onKanbanNameChange: (kanban: KanbanInterface, newName: string) => void;
-}
-
-// Update the component to accept the new prop
-export function ProjectDashboardTasks({kanban, onKanbanNameChange}: ProjectDashboardTasksProps) {
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = React.useState({})
-    const [isModalOpen, setIsModalOpen] = React.useState(false)
-    const [selectedTask, setSelectedTask] = React.useState<TaskInterface | null>(null)
-    const [commentText, setCommentText] = React.useState("")
-    const [t] = useTranslation()
-    const [comments, setComments] = React.useState<Comment[]>([
+function getColumns(): ColumnDef<TaskInterface>[] {
+    return [
         {
-            id: 1,
-            text: "This task looks good, but we need to clarify the requirements.",
-            user: "Egor Yolkin", // Example user
-            timestamp: "2025-04-29 10:00",
+            accessorKey: "title",
+            header: ({table}) => {
+                const {
+                    isEditing,
+                    editingName,
+                    startEditing,
+                    saveEditing,
+                    cancelEditing,
+                    setEditingName,
+                    kanban,
+                } = table.options.meta as KanbanNameHeaderMeta
+
+                if (isEditing) {
+                    return (
+                        <Input
+                            value={editingName}
+                            onChange={(e) => setEditingName(e.target.value)}
+                            onBlur={saveEditing}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault()
+                                    saveEditing()
+                                } else if (e.key === "Escape") {
+                                    e.preventDefault()
+                                    cancelEditing()
+                                }
+                            }}
+                            autoFocus
+                            className="h-6 text-sm p-1 w-full"
+                            onClick={(e) => e.stopPropagation()}
+                        />
+                    )
+                }
+
+                return (
+                    <div className="flex items-center justify-between cursor-pointer">
+                        <div
+                            className="cursor-pointer font-bold hover:opacity-80 flex justify-between"
+                            onClick={startEditing}
+                        >
+                            {editingName || kanban?.name || "Backlog"}
+                        </div>
+                        <div onClick={() => {
+                            deleteKanban(kanban.id)
+                        }}>
+                            <TrashIcon className="w-4 text-red-500"></TrashIcon>
+                        </div>
+                    </div>
+                )
+            },
+            cell: ({row}) => {
+                const task = row.original
+                return (
+                    <div className="font-medium text-wrap flex flex-col gap-2 justify-center">
+                        {task.title}
+                        <div className="flex flex-wrap gap-2 text-white">
+                            {task.users && Array.isArray(task.users) && (
+                                task.users.map((user) => (
+                                    <Avatar key={user.id} className="w-6 h-6">
+                                        <AvatarImage src={user.avatarUrl} alt={user.name}/>
+                                        <AvatarFallback className="bg-gray-600">
+                                            {user.name[0] + user.surname[0]}
+                                        </AvatarFallback>
+                                    </Avatar>
+                                ))
+                            )}
+                        </div>
+                    </div>
+                )
+            },
         },
-    ])
-
-    // State for Kanban name editing
-    const [isEditingKanbanName, setIsEditingKanbanName] = React.useState(false);
-    const [editingKanbanName, setEditingKanbanName] = React.useState(kanban.name);
-
-    // Effect to update the internal editing state if the kanban prop changes
-    // This is important if the parent updates the kanban object externally
-    React.useEffect(() => {
-        if (!isEditingKanbanName) { // Only update if not currently in editing mode
-            setEditingKanbanName(kanban.name);
-        }
-    }, [kanban.name, isEditingKanbanName]); // Re-run if kanban name prop or editing state changes
-
-    // Handlers for Kanban name editing
-    const startEditingKanbanName = () => {
-        setIsEditingKanbanName(true);
-        // Set the editing name to the current kanban name when starting edit
-        setEditingKanbanName(kanban.name);
-    };
-
-    const saveEditingKanbanName = () => {
-        const trimmedName = editingKanbanName.trim();
-
-        // Only save if the name has changed and is not empty
-        if (trimmedName && trimmedName !== kanban.name) {
-            onKanbanNameChange(kanban, trimmedName); // Call the parent handler
-        } else {
-            // Revert to the original name if empty or unchanged
-            setEditingKanbanName(kanban.name);
-        }
-
-        setIsEditingKanbanName(false); // Exit editing mode
-    };
-
-    const cancelEditingKanbanName = () => {
-        // Revert to the original name and exit editing mode
-        setEditingKanbanName(kanban.name);
-        setIsEditingKanbanName(false);
-    };
-
-
-    const table = useReactTable({
-        data: kanban.tasks,
-        columns,
-        onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
-        getCoreRowModel: getCoreRowModel(),
-        getPaginationRowModel: getPaginationRowModel(),
-        getSortedRowModel: getSortedRowModel(),
-        getFilteredRowModel: getFilteredRowModel(),
-        onColumnVisibilityChange: setColumnVisibility,
-        onRowSelectionChange: setRowSelection,
-        state: {
-            sorting,
-            columnFilters,
-            columnVisibility,
-            rowSelection,
+        {
+            id: "select",
+            header: () => <></>,
+            cell: ({row}) => (
+                <CheckStatus taskID={row.original.id} isCompleted={row.original.is_completed}/>
+            ),
+            enableSorting: false,
+            enableHiding: false,
         },
-        // Pass editing state and handlers to the column definitions via meta
-        meta: {
-            kanban,
-            isEditing: isEditingKanbanName,
-            editingName: editingKanbanName,
-            startEditing: startEditingKanbanName,
-            saveEditing: saveEditingKanbanName,
-            cancelEditing: cancelEditingKanbanName,
-            setEditingName: setEditingKanbanName, // Pass the setter
-        } as KanbanNameHeaderMeta, // Explicitly type meta
+    ]
+}
 
-    })
+async function createTask(taskData: Record<string, string | number | boolean | undefined>) {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiVersion = import.meta.env.VITE_API_VERSION;
 
-    const handleRowClick = (task: TaskInterface) => {
-        setSelectedTask(task)
-        setIsModalOpen(true)
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/task/`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+            "Authorization": localStorage.getItem("accessToken") || "",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(taskData),
+    });
+
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+            console.error("Ошибка от сервера:", errorData);
+            throw new Error(errorData?.message || `Ошибка создания задачи: ${response.status}`);
+        } catch (e) {
+            console.error("Ошибка при обработке ответа об ошибке:", e);
+            throw new Error(`Ошибка создания задачи: ${response.status}`);
+        }
     }
 
-    const handleCommentSubmit = () => {
-        if (commentText.trim()) {
-            setComments([
-                ...comments,
-                {
-                    id: comments.length + 1,
-                    text: commentText,
-                    user: "Current User", // Replace with actual user data in a real app
-                    timestamp: new Date().toISOString().slice(0, 16).replace("T", " "),
-                },
-            ])
-            setCommentText("")
+    const responseData = await response.json();
+    return responseData;
+}
+
+async function updateTask(taskData: Record<string, string | number | boolean | undefined>, taskID: number) {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiVersion = import.meta.env.VITE_API_VERSION;
+
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/task/${taskID}`, {
+        method: "PUT",
+        credentials: 'include',
+        headers: {
+            "Authorization": localStorage.getItem("accessToken") || "",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(taskData),
+    });
+
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+            console.error("Ошибка от сервера:", errorData);
+            throw new Error(errorData?.message || `Ошибка обновления задачи: ${response.status}`);
+        } catch (e) {
+            console.error("Ошибка при обработке ответа об ошибке:", e);
+            throw new Error(`Ошибка обновления задачи: ${response.status}`);
         }
     }
 
-    return (
-        <div className="min-w-[250px] max-w-[250px]">
-            <div className="flex items-center py-4">
-                {/* Column Visibility Dropdown - Keep as is */}
-                <DropdownMenu>
-                    {/* ... DropdownMenuTrigger etc. */}
-                    <DropdownMenuContent align="end">
-                        {table
-                            .getAllColumns()
-                            .filter((column) => column.getCanHide())
-                            .map((column) => (
-                                <DropdownMenuCheckboxItem
-                                    key={column.id}
-                                    className="capitalize"
-                                    checked={column.getIsVisible()}
-                                    onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                >
-                                    {column.id}
-                                </DropdownMenuCheckboxItem>
-                            ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHead>
-                                ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                    className="cursor-pointer hover:bg-gray-100"
-                                    onClick={() => handleRowClick(row.original)}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                        </TableCell>
+    const responseData = await response.json();
+    return responseData;
+}
+
+async function deleteKanban(kanbanID: number) {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiVersion = import.meta.env.VITE_API_VERSION;
+
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/kanban/${kanbanID}`, {
+        method: "DELETE",
+        credentials: 'include',
+        headers: {
+            "Authorization": localStorage.getItem("accessToken") || "",
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+            console.error("Ошибка от сервера:", errorData);
+            throw new Error(errorData?.message || `Ошибка удаления канбана: ${response.status}`);
+        } catch (e) {
+            console.error("Ошибка при обработке ответа об ошибке:", e);
+            throw new Error(`Ошибка удаления канбана: ${response.status}`);
+        }
+    }
+
+    window.location.reload();
+    const responseData = await response.json();
+    return responseData;
+}
+
+async function deleteTask(taskID: number) {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiVersion = import.meta.env.VITE_API_VERSION;
+
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/task/${taskID}`, {
+        method: "DELETE",
+        credentials: 'include',
+        headers: {
+            "Authorization": localStorage.getItem("accessToken") || "",
+            "Content-Type": "application/json",
+        },
+    });
+
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+            console.error("Ошибка от сервера:", errorData);
+            throw new Error(errorData?.message || `Ошибка удаления задачи: ${response.status}`);
+        } catch (e) {
+            console.error("Ошибка при обработке ответа об ошибке:", e);
+            throw new Error(`Ошибка удаления задачи: ${response.status}`);
+        }
+    }
+
+    window.location.reload();
+    const responseData = await response.json();
+    return responseData;
+}
+
+interface ProjectDashboardTasksProps {
+    kanban: KanbanInterface
+    onKanbanNameChange: (kanban: KanbanInterface, newName: string) => void
+}
+
+export const ProjectDashboardTasks: React.FC<ProjectDashboardTasksProps> = React.memo(
+    ({kanban, onKanbanNameChange}) => {
+        const [sorting, setSorting] = React.useState<SortingState>([])
+        const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+        const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
+        const [rowSelection, setRowSelection] = React.useState({})
+        const [isModalOpen, setIsModalOpen] = React.useState(false)
+        const [selectedTask, setSelectedTask] = React.useState<TaskInterface | null>(null)
+        const [selectedTaskIsComplete, setSelectedTaskIsComplete] = React.useState<boolean>(selectedTask?.is_completed || false)
+        const [task, setTask] = React.useState<string | null>(null)
+        const [t] = useTranslation()
+
+        const [isEditingKanbanName, setIsEditingKanbanName] = React.useState(false)
+        const [editingKanbanName, setEditingKanbanName] = React.useState(kanban.name)
+
+        const [isEditingTitle, setIsEditingTitle] = React.useState(false)
+        const [isEditingDescription, setIsEditingDescription] = React.useState(false)
+        const [editingTitle, setEditingTitle] = React.useState(selectedTask?.title || "")
+        const [editingDescription, setEditingDescription] = React.useState(selectedTask?.description || "")
+
+        React.useEffect(() => {
+            if (selectedTask) {
+                setEditingTitle(selectedTask.title)
+                setEditingDescription(selectedTask.description || "")
+            }
+        }, [selectedTask])
+
+        React.useEffect(() => {
+            setSelectedTaskIsComplete(selectedTask?.is_completed || false)
+        }, [selectedTask])
+
+        React.useEffect(() => {
+            if (!isEditingKanbanName) {
+                setEditingKanbanName(kanban.name)
+            }
+        }, [kanban.name, isEditingKanbanName])
+
+        const startEditingKanbanName = React.useCallback(() => {
+            setIsEditingKanbanName(true)
+            setEditingKanbanName(kanban.name)
+        }, [kanban.name])
+
+        const saveEditingKanbanName = React.useCallback(() => {
+            const trimmedName = editingKanbanName.trim()
+            if (trimmedName && trimmedName !== kanban.name) {
+                onKanbanNameChange(kanban, trimmedName)
+            } else {
+                setEditingKanbanName(kanban.name)
+            }
+            setIsEditingKanbanName(false)
+        }, [kanban, editingKanbanName, onKanbanNameChange])
+
+        const cancelEditingKanbanName = React.useCallback(() => {
+            setEditingKanbanName(kanban.name)
+            setIsEditingKanbanName(false)
+        }, [kanban.name])
+
+        const table = useReactTable({
+            data: kanban.tasks || [],
+            columns: getColumns(),
+            onSortingChange: setSorting,
+            onColumnFiltersChange: setColumnFilters,
+            getCoreRowModel: getCoreRowModel(),
+            getPaginationRowModel: getPaginationRowModel(),
+            getSortedRowModel: getSortedRowModel(),
+            getFilteredRowModel: getFilteredRowModel(),
+            onColumnVisibilityChange: setColumnVisibility,
+            onRowSelectionChange: setRowSelection,
+            state: {
+                sorting,
+                columnFilters,
+                columnVisibility,
+                rowSelection,
+            },
+            meta: {
+                kanban,
+                isEditing: isEditingKanbanName,
+                editingName: editingKanbanName,
+                startEditing: startEditingKanbanName,
+                saveEditing: saveEditingKanbanName,
+                cancelEditing: cancelEditingKanbanName,
+                setEditingName: setEditingKanbanName,
+            },
+        })
+
+        const handleRowClick = React.useCallback((task: TaskInterface) => {
+            setSelectedTask(task)
+            setSelectedTaskIsComplete(task.is_completed || false)
+            setIsModalOpen(true)
+        }, [setSelectedTask, setIsModalOpen])
+
+        const handleTaskCreate = useCallback(async () => {
+            try {
+                if (task && task.trim()) {
+                    await createTask({
+                        title: task.trim(),
+                        description: "No description",
+                        kanban_id: kanban.id,
+                        is_completed: false,
+                    })
+                    setTask("")
+                    window.location.reload()
+                }
+            } catch (error: any) {
+                console.error("Ошибка при создании задачи:", error)
+            }
+        }, [t, task, kanban.id])
+
+        const handleTaskUpdate = useCallback(async () => {
+            if (selectedTask?.id) {
+                try {
+                    await updateTask({
+                        title: selectedTask.title,
+                        description: selectedTask.description,
+                        kanban_id: kanban.id,
+                        is_completed: !selectedTaskIsComplete,
+                    }, selectedTask.id)
+                } catch (error: any) {
+                    console.error("Ошибка при обновлении задачи:", error)
+                }
+            } else {
+                console.warn("ID выбранной задачи не определен, невозможно обновить.")
+            }
+        }, [selectedTask, selectedTaskIsComplete, kanban.id])
+
+        const handleSave = async () => {
+            if (selectedTask) {
+                const updatedTask = {
+                    ...selectedTask,
+                    title: editingTitle,
+                    description: editingDescription,
+                }
+                try {
+                    await updateTask(updatedTask, selectedTask.id)
+                    setSelectedTask(updatedTask)
+                    setIsEditingTitle(false)
+                    setIsEditingDescription(false)
+                } catch (error) {
+                    console.error("Ошибка при обновлении задачи:", error)
+                }
+            }
+        }
+
+        return (
+            <div className="min-w-[250px] max-w-[250px]">
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id}>
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(header.column.columnDef.header, header.getContext())}
+                                        </TableHead>
                                     ))}
                                 </TableRow>
-                            ))
-                        ) : (
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table?.getRowModel()?.rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && "selected"}
+                                        className="cursor-pointer hover:bg-gray-100"
+                                        onClick={() => handleRowClick(row.original)}
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell colSpan={table.getAllColumns().length}>
+                                        {t("No tasks found")}
+                                    </TableCell>
+                                </TableRow>
+                            )}
                             <TableRow>
-                                <TableCell colSpan={columns.length} className="h-24 text-center">
-                                    {t("No tasks found")}.
+                                <TableCell colSpan={table.getAllColumns().length}>
+                                    <Input
+                                        placeholder={t('Create task')}
+                                        value={task || ""}
+                                        onChange={(e) => {
+                                            setTask(e.target.value)
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                handleTaskCreate()
+                                            }
+                                        }}
+                                    />
                                 </TableCell>
                             </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
-            </div>
+                        </TableBody>
+                    </Table>
+                </div>
 
-            {/* Task Detail Modal - Keep as is */}
-            <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-                <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                        <DialogTitle>
-                            <div className="flex flex-col gap-2">{selectedTask?.title}</div>
-                        </DialogTitle>
-                        <DialogDescription>
-                            {selectedTask?.description || t("No description provided.")}
-                        </DialogDescription>
-                    </DialogHeader>
-                    {selectedTask && (
-                        <div className="space-y-4">
-                            {/* ... Task details and comments section - Keep as is */}
-                            <div>
-                                <h4 className="font-semibold">{t("Status")}</h4>
-                                <span className="flex items-center gap-2 mt-2">
-                                    <CheckStatus isCompleted={selectedTask.isCompleted} taskID={selectedTask.taskID}></CheckStatus>
-                                    {selectedTask.isCompleted ? (
-                                        <>
-                                            <span className="text-sm font-semibold">{t("Completed")}</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="text-sm font-semibold">{t("Don't completed")}</span>
-                                        </>
-                                    )}
-                                </span>
+                <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+                    <DialogContent className="sm:max-w-[600px]">
+                        <div className="flex justify-between">
+                            <div className="flex flex-col w-[70%]">
+                                {isEditingTitle ? (
+                                    <Input
+                                        value={editingTitle}
+                                        onChange={(e) => setEditingTitle(e.target.value)}
+                                        onBlur={handleSave}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.preventDefault()
+                                                handleSave()
+                                            } else if (e.key === "Escape") {
+                                                e.preventDefault()
+                                                setIsEditingTitle(false)
+                                            }
+                                        }}
+                                        autoFocus
+                                        className="text-xl font-semibold"
+                                    />
+                                ) : (
+                                    <span
+                                        className="text-xl font-semibold"
+                                        onClick={() => setIsEditingTitle(true)}
+                                    >
+                                        {selectedTask?.title}
+                                    </span>
+                                )}
+                                {isEditingDescription ? (
+                                    <textarea
+                                        value={editingDescription}
+                                        onChange={(e) => setEditingDescription(e.target.value)}
+                                        onBlur={handleSave}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") {
+                                                e.preventDefault()
+                                                handleSave()
+                                            } else if (e.key === "Escape") {
+                                                e.preventDefault()
+                                                setIsEditingDescription(false)
+                                            }
+                                        }}
+                                        autoFocus
+                                        className="text-sm text-gray-700 w-full"
+                                    />
+                                ) : (
+                                    <span
+                                        className="text-sm text-gray-700"
+                                        onClick={() => setIsEditingDescription(true)}
+                                    >
+                                        {selectedTask?.description || t("No description provided.")}
+                                    </span>
+                                )}
                             </div>
-                            <div>
-                                <h4 className="font-semibold">{t("Assigned users")}</h4>
-                                <div className="flex flex-wrap gap-2 mt-2">
-                                    {selectedTask.users.length > 0 ? (
-                                        selectedTask.users.map((user) => (
-                                            <Badge
-                                                key={user.id}
-                                                className="rounded-full pt-1 pb-1 pr-5 flex gap-2 items-center"
-                                            >
-                                                <Avatar className="w-5 h-5">
-                                                    <AvatarImage src={user.avatarUrl} alt={user.name}/>
-                                                    <AvatarFallback className="bg-gray-600">
-                                                        {user.name[0] + user.surname[0]}
-                                                    </AvatarFallback>
-                                                </Avatar>
-                                                {user.name} {user.surname}
-                                            </Badge>
-                                        ))
-                                    ) : (
-                                        <span className="text-sm text-gray-600">{t("No users assigned")}</span>
-                                    )}
+                            <div className="w-[30%] flex justify-end">
+                                <div
+                                    className="text-red-500 w-fit cursor-pointer"
+                                    onClick={() => {
+                                        if (selectedTask?.id) {
+                                            deleteTask(selectedTask.id)
+                                        } else {
+                                            console.warn("ID задачи не найден при попытке удаления.")
+                                        }
+                                    }}
+                                >
+                                    <TrashIcon className="w-5 h-5" />
                                 </div>
                             </div>
-
-                            {/* Comment Section */}
-                            <div>
-                                <h4 className="font-semibold">{t("Comments")}</h4>
-                                <div className="mt-2 max-h-[200px] overflow-y-auto space-y-2 pr-2">
-                                    {comments.length > 0 ? (
-                                        comments.map((comment) => (
-                                            <div
-                                                key={comment.id}
-                                                className="border-l-2 border-gray-200 pl-3 py-1"
-                                            >
-                                                <p className="text-sm font-medium">{comment.user}</p>
-                                                <p className="text-sm text-gray-600">{comment.text}</p>
-                                                <p className="text-xs text-gray-400">{comment.timestamp}</p>
-                                            </div>
-                                        ))
-                                    ) : (
-                                        <p className="text-sm text-gray-600">{t("No comments yet.")}</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Comment Form */}
-                            <div className="flex gap-2">
-                                <Input
-                                    placeholder={t("Add a comment") + "..."}
-                                    value={commentText}
-                                    onChange={(e) => setCommentText(e.target.value)}
-                                />
-                                <Button onClick={handleCommentSubmit} disabled={!commentText.trim()}>
-                                    {t("Publish")}
-                                </Button>
-                            </div>
-
                         </div>
-                    )}
-                </DialogContent>
-            </Dialog>
-        </div>
-    )
-}
+                        {selectedTask && (
+                            <div className="space-y-4">
+                                <div>
+                                    <h4 className="font-semibold">{t("Status")}</h4>
+                                    <span className="flex items-center gap-2 mt-2 cursor-pointer"
+                                          onClick={handleTaskUpdate}>
+                                        <CheckStatus
+                                            isCompleted={selectedTaskIsComplete}
+                                            taskID={selectedTask.id}
+                                        />
+                                        {selectedTaskIsComplete ? (
+                                            <span className="text-sm font-semibold">{t("Completed")}</span>
+                                        ) : (
+                                            <span className="text-sm font-semibold">{t("Don't completed")}</span>
+                                        )}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+                    </DialogContent>
+                </Dialog>
+            </div>
+        )
+    },
+    (prevProps, nextProps) => {
+        return prevProps.kanban === nextProps.kanban && prevProps.onKanbanNameChange === nextProps.onKanbanNameChange
+    }
+)

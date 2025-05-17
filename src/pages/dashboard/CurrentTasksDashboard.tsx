@@ -18,7 +18,6 @@ import {Input} from "@/components/ui/input.tsx";
 import {CreateTaskFormCombobox} from "@/components/internal/forms/CreateTaskFormCombobox.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {SendHorizontal} from "lucide-react";
-// import {DashboardTasks} from "@/components/internal/tasks/DashboardTasks.tsx";
 import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
@@ -26,15 +25,16 @@ import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
 interface CurrentTasksDashboardProps {
     navMain: DashboardSidebarItemInterface[];
     projects: ProjectInterface[];
+    sharedProjects: ProjectInterface[]
     user: UserInterface;
 }
 
-export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({navMain, projects, user}) => {
+export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({navMain, projects, sharedProjects, user}) => {
     const [t] = useTranslation();
 
     return (
         <SidebarProvider>
-            <AppSidebar navMain={navMain} user={user} projects={projects} />
+            <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2">
                     <div className="flex items-center gap-2 px-5">

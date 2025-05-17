@@ -66,6 +66,10 @@ export function LoginForm({
         } finally {
             setIsLoading(false);
         }
+
+        if (errorMessage === null) {
+            window.location.href = "/dashboard";
+        }
     }, [email, password, t, onLoginSuccess, onLoginError]);
 
     return (

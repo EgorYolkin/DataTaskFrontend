@@ -39,11 +39,19 @@
   "Search language": "Поиск языка",
   "Select language": "Выбрать язык",
 
+  "Delete project": "Удалить проект",
+  "Confirm deletion of the project": "Подтвердите удаление проекта",
+
   "Suggestions": "Предложения",
   "Parent project": "Родительский проект",
 
   "Task": "Задача",
   "Publish": "Опубликовать",
+  "Close": "Закрыть",
+  "Cancel": "Отмена",
+  "Create kanban": "Создать канбан",
+  "Kanban name": "Название канбана",
+  "Create task": "Создать задачу",
 
   "Select project": "Выбрать проект",
 
@@ -54,7 +62,11 @@
   "Don't completed": "Не завершено",
   "Completed": "Завершено",
 
+  "Shared projects": "Совместные проекты",
+
   "Type a command or search": "Введите команду или запрос",
+
+  "Delete task": "Удалить задачу",
 
   "Filter tasks": "Сортировать задачи",
   "No tasks found": "Задачи не найдены",

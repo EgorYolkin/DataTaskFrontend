@@ -38,15 +38,16 @@ import {UserInterface} from "@/interfaces/UserInterface.tsx";
 interface LocalSettingsDashboardProps {
     navMain: DashboardSidebarItemInterface[];
     projects: ProjectInterface[];
+    sharedProjects: ProjectInterface[]
     user: UserInterface;
 }
 
-export const LocalSettingsDashboard: React.FC<LocalSettingsDashboardProps> = ({navMain, projects, user}) => {
+export const LocalSettingsDashboard: React.FC<LocalSettingsDashboardProps> = ({navMain, projects, sharedProjects, user}) => {
     const [t] = useTranslation();
 
     return (
         <SidebarProvider>
-            <AppSidebar navMain={navMain} user={user} projects={projects} />
+            <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2">
                     <div className="flex items-center gap-2 px-5">

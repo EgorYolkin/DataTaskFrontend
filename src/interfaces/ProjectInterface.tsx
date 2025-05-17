@@ -1,6 +1,7 @@
 import {KanbanInterface} from "@/interfaces/TasksInterfase.tsx";
 
 export interface ProjectTopicInterface {
+    id: number;
     name: string;
     color: string;
     description: string;

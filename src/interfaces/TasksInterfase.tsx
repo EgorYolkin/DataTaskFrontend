@@ -1,14 +1,15 @@
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
 
 export interface KanbanInterface {
+    id: number;
     name: string;
     tasks: TaskInterface[]
 }
 
 export interface TaskInterface {
-    taskID: number;
+    id: number;
     title: string;
     description: string;
     users: UserInterface[];
-    isCompleted: boolean;
+    is_completed: boolean;
 }

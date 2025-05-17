@@ -1,6 +1,6 @@
 "use client"
 
-import React, {useMemo} from "react" // Import useMemo
+import React, {useCallback, useMemo, useState} from "react" // Import useMemo
 import {useParams} from "react-router-dom"
 import {
     Breadcrumb,
@@ -24,13 +24,12 @@ import {Button} from "@/components/ui/button.tsx";
 
 interface ProjectDashboardProps {
     navMain: DashboardSidebarItemInterface[]
-    projects: ProjectInterface[] // Assume projects might be empty or loading initially
+    projects: ProjectInterface[]
+    sharedProjects: ProjectInterface[]
     user: UserInterface
-    // Consider adding an isLoading prop if data fetching is handled outside
-    // isLoading?: boolean;
 }
 
-export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain, projects, user}) => {
+export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain, projects, sharedProjects, user}) => {
     const {projectName, topicName} = useParams<{ projectName?: string; topicName?: string }>()
     const [t] = useTranslation()
 
@@ -39,7 +38,7 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
         // ... (оставь этот блок без изменений)
         return (
             <SidebarProvider>
-                <AppSidebar navMain={navMain} user={user} projects={projects}/>
+                <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
                 <SidebarInset>
                     <header className="flex h-16 shrink-0 items-center gap-2">
                         <div className="flex items-center gap-2 px-5">
@@ -105,16 +104,7 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
         */
     }
 
-
-    // Find the project and topic (This logic is now inside useMemo)
-    // const project = projects.find((p) => p.name.toLowerCase() === projectName.toLowerCase())
-    // const topic = project?.topics.find((t) => t.name.toLowerCase() === topicName.toLowerCase())
-
-
     if (!project || !topic) {
-        // This block handles both "project/topic not found" AND the initial
-        // state where 'projects' was empty or null before loading,
-        // leading to 'project' and 'topic' being undefined.
         return (
             <SidebarProvider>
                 <AppSidebar navMain={navMain} user={user} projects={projects}/>
@@ -140,7 +130,6 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
                         <div className="text-center">
                             <h2 className="text-2xl font-semibold">{t("Project or Topic Not Found")}</h2>
                             <p>{t("Please check the URL or select a valid project.")}</p>
-                            {/* Maybe add a link back to the dashboard/projects list */}
                         </div>
                     </div>
                 </SidebarInset>
@@ -148,10 +137,7 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
         )
     }
 
-    // Use kanbans from the topic
-    // Ensure topic.kanbans is an array, default to empty array if null/undefined
     const kanbans: KanbanInterface[] = topic.kanbans || [];
-
 
     return (
         <SidebarProvider>
@@ -164,7 +150,6 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
                         <Separator orientation="vertical" className="mr-2 h-4"/>
                         <Breadcrumb>
                             <BreadcrumbList>
-                                {/* Removed the hidden md:block class from the first item if it was meant to be visible */}
                                 <BreadcrumbItem className="md:block">
                                     <BreadcrumbLink href="#">{t("Review")}</BreadcrumbLink>
                                 </BreadcrumbItem>
@@ -179,7 +164,8 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
                         </Breadcrumb>
                     </div>
                 </header>
-                <div className="flex items-center justify-center w-full p-[20px]">
+                <div className="flex items-center justify-center w-full p-[20px]"
+                     onClick={() => console.log("Клик по главному контейнеру")}>
                     <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
                         <div className="flex-col m-[20px] mb-0">
                             <span className="text-2xl font-semibold flex items-center gap-3">
@@ -203,23 +189,138 @@ export const ProjectTopicDashboard: React.FC<ProjectDashboardProps> = ({navMain,
                                 {/* Ensure topic is not null/undefined */}
                                 {t("Kanban")} - {topic.name}
                             </span>
+                            <br/>
                             <div className="flex gap-5 overflow-auto max-w-[100vw]">
                                 {kanbans.length > 0 ? (
                                     kanbans.map((kanban) => (
-                                        <ProjectDashboardTasks onKanbanNameChange={() => {
-                                        }} key={kanban.name} kanban={kanban}/>
+                                        <ProjectDashboardTasks
+                                            onKanbanNameChange={() => {
+                                            }} key={kanban.name} kanban={kanban}
+                                        />
                                     ))
                                 ) : (
                                     <p>{t("No Kanban boards found for this topic.")}</p>
                                 )}
-                                <div className="items-center justify-center mt-[32px]">
-                                    <Button>Create kanban</Button>
-                                </div>
+                            </div>
+                            <div className="items-center justify-center mt-[32px]">
+                                <CreateKanbanDialog projectID={topic.id}></CreateKanbanDialog>
                             </div>
                         </div>
                     </div>
                 </div>
             </SidebarInset>
         </SidebarProvider>
+    )
+}
+
+
+async function createKanban(kanbanData: Record<string, string | number | undefined>) {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiVersion = import.meta.env.VITE_API_VERSION;
+
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/kanban/`, {
+        method: "POST",
+        credentials: 'include',
+        headers: {
+            "Authorization": localStorage.getItem("accessToken") || "",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(kanbanData),
+    });
+
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+            console.error("Ошибка от сервера:", errorData);
+            throw new Error(errorData?.message || `Ошибка создания проекта: ${response.status}`);
+        } catch (e) {
+            console.error("Ошибка при обработке ответа об ошибке:", e);
+            throw new Error(`Ошибка создания проекта: ${response.status}`);
+        }
+    }
+
+    const responseData = await response.json();
+
+    return responseData;
+}
+
+import {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import {Input} from "@/components/ui/input.tsx";
+
+interface CreateKanbanDialogProps {
+    projectID: number;
+}
+
+export const CreateKanbanDialog: React.FC<CreateKanbanDialogProps> = ({projectID}) => {
+    const [kanbanName, setKanbanName] = useState<string | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+    const [t] = useTranslation();
+
+    const handleKanbanCreate = useCallback(async () => {
+        setErrorMessage(null);
+
+        const kanbanDataToSend = {
+            name: kanbanName,
+            project_id: projectID,
+        };
+
+        try {
+            await createKanban(kanbanDataToSend);
+            window.location.reload();
+
+        } catch (error: any) {
+            console.error("Ошибка при создании канбана:", error);
+            setErrorMessage(error.message || t('An error occurred during create kanban'));
+        }
+    }, [t, kanbanName, projectID]);
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <div
+                    className="bg-black text-white w-fit pr-3 pl-3 pt-1 pb-1 rounded-sm cursor-pointer">
+                    {t('Create kanban')}
+                </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>{t('Create kanban')}</DialogTitle>
+                </DialogHeader>
+                <div>
+                    {errorMessage && (
+                        <div className="p-2 text-sm text-red-600 bg-red-100 rounded-md mb-[10px]">
+                            {errorMessage}
+                        </div>
+                    )}
+                    <Input onChange={
+                        (e) => setKanbanName(e.target.value)
+                    } type="text" placeholder={t('Kanban name')}/>
+                </div>
+                <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                        <div className="flex gap-2">
+                            <Button type="button" className="text-white" variant="secondary">
+                                {t('Close')}
+                            </Button>
+                            <div
+                                onClick={handleKanbanCreate}
+                                className="bg-green-500 text-white w-fit pr-3 pl-3 pt-1 pb-1 rounded-sm cursor-pointer">
+                                {t('Create')}
+                            </div>
+                        </div>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     )
 }

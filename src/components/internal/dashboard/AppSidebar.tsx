@@ -19,17 +19,33 @@ import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterf
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
 import {Folder} from "lucide-react";
+import {NavSharedProjects} from "@/components/internal/dashboard/NavSharedProjects.tsx";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     navMain: DashboardSidebarItemInterface[];
     projects: ProjectInterface[];
+    sharedProjects: ProjectInterface[];
     user: UserInterface;
 }
 
-export function AppSidebar({navMain, projects, user, ...props}: AppSidebarProps) {
-    // Добавляем защиту от undefined
+export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: AppSidebarProps) {
     const projectItems: ProjectNavItem[] = projects && projects.length > 0
         ? projects.map((project) => ({
+            title: project.name,
+            url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}`,
+            icon: Folder,
+            color: project.color,
+            description: project.description,
+            isActive: false,
+            items: project.topics.map((topic) => ({
+                title: topic.name,
+                url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}/${topic.name.toLowerCase().replace(/\s+/g, "-")}`,
+            })),
+        }))
+        : [];
+
+    const sharedProjectItems: ProjectNavItem[] = sharedProjects && sharedProjects.length > 0
+        ? sharedProjects.map((project) => ({
             title: project.name,
             url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}`,
             icon: Folder,
@@ -66,6 +82,7 @@ export function AppSidebar({navMain, projects, user, ...props}: AppSidebarProps)
             <SidebarContent>
                 <NavMain items={navMain}/>
                 <NavProjects items={projectItems}/>
+                <NavSharedProjects items={sharedProjectItems}/>
             </SidebarContent>
             <SidebarFooter>
                 <NavUser user={user}/>

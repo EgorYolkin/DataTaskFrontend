@@ -75,6 +75,10 @@ export function RegisterForm({
         } finally {
             setIsLoading(false);
         }
+
+        if (errorMessage === null) {
+            window.location.href = "/dashboard";
+        }
     }, [email, name, password, surname, t, onSuccess, onError, isFormValid]);
 
     return (
