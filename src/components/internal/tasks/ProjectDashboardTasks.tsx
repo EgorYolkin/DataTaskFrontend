@@ -159,7 +159,7 @@ async function createTask(taskData: Record<string, string | number | boolean | u
     return responseData;
 }
 
-async function updateTask(taskData: Record<string, string | number | boolean | undefined>, taskID: number) {
+async function updateTask(taskData: any, taskID: number) {
     const apiUrl = import.meta.env.VITE_API_URL;
     const apiVersion = import.meta.env.VITE_API_VERSION;
 

@@ -4,17 +4,18 @@ import {Input} from "@/components/ui/input";
 import {Label} from "@/components/ui/label";
 import {useTranslation} from "react-i18next";
 import React, {useState, useCallback} from "react";
+import {FetchResponse, fetchResponse} from "@/interfaces/FetchResponse.tsx";
 
 interface RegisterFormProps extends Omit<React.ComponentPropsWithoutRef<"form">, "onError"> {
     onSuccess?: () => void;
     onError?: (error: string) => void;
 }
 
-async function createUser(userData: Record<string, string>): Promise<any> {
+async function createUser(userData: Record<string, string>): Promise<FetchResponse> {
     const apiUrl = import.meta.env.VITE_API_URL;
     const apiVersion = import.meta.env.VITE_API_VERSION;
 
-    const response = await fetch(`${apiUrl}/api/${apiVersion}/user/create/`, {
+    const response = await fetch(`${apiUrl}/api/${apiVersion}/user/create`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -67,17 +68,14 @@ export function RegisterForm({
         try {
             const userData = {name, surname, email, password};
             const rData = await createUser(userData);
-            console.log("Успешная регистрация:", JSON.stringify(rData));
+            localStorage.setItem('accessToken', rData.data.accessToken);
+            window.location.href = "/auth/login";
             onSuccess?.();
         } catch (err: any) {
             setErrorMessage(err.message || t('An error occurred during registration'));
             onError?.(err.message || t('An error occurred during registration'));
         } finally {
             setIsLoading(false);
-        }
-
-        if (errorMessage === null) {
-            window.location.href = "/dashboard";
         }
     }, [email, name, password, surname, t, onSuccess, onError, isFormValid]);
 

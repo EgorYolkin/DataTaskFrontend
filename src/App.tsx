@@ -15,7 +15,8 @@ import {ProjectDashboard} from "@/pages/dashboard/ProjectDashboard.tsx";
 import {CreateProjectDashboard} from "@/pages/dashboard/CreateProjectDashboard.tsx";
 import {jwtDecode, JwtPayload} from "jwt-decode";
 import React, {useState, useEffect} from 'react';
-import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"; // Import useState and useEffect
+import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx";
+import {FetchResponse} from "@/interfaces/FetchResponse.tsx"; // Import useState and useEffect
 
 export function ProtectedRoute({isAuth, children}: { isAuth: boolean; children: React.ReactNode }) {
     if (!isAuth) {
@@ -49,8 +50,8 @@ async function getSharedProjects(userID: number): Promise<ProjectInterface[]> {
         }
     }
 
-    const responseData = await response.json();
-    const projectsRaw = responseData.data;
+    const responseData: FetchResponse = await response.json();
+    const projectsRaw: any = responseData.data;
 
     const projects: ProjectInterface[] = await Promise.all(projectsRaw.map(async (project: any) => {
         const subtopicsResp = await fetch(`${apiUrl}/api/${apiVersion}/project_subprojects/${project.id}`, {

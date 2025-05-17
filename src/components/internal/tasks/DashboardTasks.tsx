@@ -3,7 +3,6 @@
 import * as React from "react"
 import {
     ColumnDef,
-    ColumnFiltersState,
     SortingState,
     VisibilityState,
     flexRender,
@@ -30,28 +29,53 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import { KanbanInterface, TaskInterface } from "@/interfaces/TasksInterfase.tsx"
+import { TaskInterface } from "@/interfaces/TasksInterfase.tsx"
 import { useTranslation } from "react-i18next";
 import { CheckStatus } from "@/components/internal/tasks/components/CheckStatus.tsx";
 
-// Corrected fuzzyFilter function
-const fuzzyFilter = (row: Row<TaskInterface>, columnId: string, filterValue: string) => {
-    console.log(columnId);
-    const title = row.original.title?.toLowerCase() ?? "";
-    const description = row.original.description?.toLowerCase() ?? "";
-    const search = filterValue.toLowerCase();
+// Error Boundary Component
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: Error | null }> {
+    constructor(props: { children: React.ReactNode }) {
+        super(props);
+        this.state = { hasError: false, error: null };
+    }
 
+    static getDerivedStateFromError(error: Error) {
+        return { hasError: true, error };
+    }
+
+    render() {
+        if (this.state.hasError) {
+            return (
+                <div className="p-4 text-red-500">
+                    <h2>Something went wrong.</h2>
+                    <p>{this.state.error?.message || "Unknown error"}</p>
+                </div>
+            );
+        }
+        return this.props.children;
+    }
+}
+
+// Global filter function with null/undefined protection
+const globalFilterFn = (row: Row<TaskInterface>, filterValue: string) => {
+    const task = row.original;
+    const search = filterValue.toLowerCase();
+    const title = task.title ? task.title.toLowerCase() : "";
+    const description = task.description ? task.description.toLowerCase() : "";
     return title.includes(search) || description.includes(search);
 };
 
-// Update the columns to work with TaskInterface
+// Column definitions
 export const columns: ColumnDef<TaskInterface>[] = [
     {
         id: "select",
         header: () => <></>,
         cell: ({ row }) => (
             <div>
-                <CheckStatus taskID={row.original.taskID} isCompleted={row.original.isCompleted}></CheckStatus>
+                <ErrorBoundary>
+                    <CheckStatus taskID={row.original.id} isCompleted={row.original.is_completed} />
+                </ErrorBoundary>
             </div>
         ),
         enableSorting: false,
@@ -59,7 +83,6 @@ export const columns: ColumnDef<TaskInterface>[] = [
     },
     {
         accessorKey: "title",
-        filterFn: fuzzyFilter, // Use the corrected function here
         header: ({ column }) => (
             <div
                 className="flex items-center gap-2 cursor-pointer"
@@ -79,129 +102,130 @@ export const columns: ColumnDef<TaskInterface>[] = [
     {
         accessorKey: "users",
         header: "Assigned Users",
-        cell: ({ row }) => (
-            <div>
-                {(row.getValue("users") as any[])?.map(user => user.name).join(", ") || ""}
-            </div>
-        ),
+        cell: ({ row }) => {
+            const users = row.getValue("users") as any[] | undefined;
+            return <div>{users?.map(user => user.name).join(", ") || "No users"}</div>;
+        },
     },
 ];
 
-// Update component to receive KanbanInterface as props
-export function DashboardTasks({ kanban }: { kanban: KanbanInterface }) {
+export function DashboardTasks({ tasks }: { tasks: TaskInterface[] }) {
     const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = React.useState({})
+    const [globalFilter, setGlobalFilter] = React.useState("");
     const [t] = useTranslation();
 
+    // Debugging logs
+    React.useEffect(() => {
+        console.log("Tasks received:", tasks);
+        console.log("Filtered rows:", table?.getRowModel().rows.map(row => row.original));
+    }, [tasks, globalFilter]);
+
     const table = useReactTable({
-        data: kanban.tasks,
+        data: tasks,
         columns,
         onSortingChange: setSorting,
-        onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         onColumnVisibilityChange: setColumnVisibility,
         onRowSelectionChange: setRowSelection,
+        globalFilterFn: globalFilterFn,
         state: {
             sorting,
-            columnFilters,
             columnVisibility,
             rowSelection,
+            globalFilter,
         },
-        filterFns: {
-            fuzzy: fuzzyFilter, //  Pass the filter function here
-        },
-    })
+        onGlobalFilterChange: setGlobalFilter,
+    });
 
     return (
-        <div className="w-full">
-            <div className="flex items-center py-4">
-                <Input
-                    placeholder={t('Filter tasks') + "..."}
-                    value={(table.getColumn("title")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("title")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm"
-                />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <div className="flex items-center ml-auto cursor-pointer gap-2">
-                            Columns <ChevronDown size="1em" />
-                        </div>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {table
-                            .getAllColumns()
-                            .filter((column) => column.getCanHide())
-                            .map((column) => (
-                                <DropdownMenuCheckboxItem
-                                    key={column.id}
-                                    className="capitalize"
-                                    checked={column.getIsVisible()}
-                                    onCheckedChange={(value) =>
-                                        column.toggleVisibility(!!value)
-                                    }
-                                >
-                                    {column.id}
-                                </DropdownMenuCheckboxItem>
-                            ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
-            <div className="rounded-md border">
-                <Table>
-                    <TableHeader>
-                        {table.getHeaderGroups().map((headerGroup) => (
-                            <TableRow key={headerGroup.id}>
-                                {headerGroup.headers.map((header) => (
-                                    <TableHead key={header.id}>
-                                        {header.isPlaceholder
-                                            ? null
-                                            : flexRender(
-                                                header.column.columnDef.header,
-                                                header.getContext()
-                                            )}
-                                    </TableHead>
+        <ErrorBoundary>
+            <div className="w-full">
+                <div className="flex items-center py-4">
+                    <Input
+                        placeholder={t('Filter tasks') + "..."}
+                        value={table.getState().globalFilter ?? ""}
+                        onChange={(event) => table.setGlobalFilter(event.target.value)}
+                        className="max-w-sm"
+                    />
+                    <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                            <div className="flex items-center ml-auto cursor-pointer gap-2">
+                                Columns <ChevronDown size="1em" />
+                            </div>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            {table
+                                .getAllColumns()
+                                .filter((column) => column.getCanHide())
+                                .map((column) => (
+                                    <DropdownMenuCheckboxItem
+                                        key={column.id}
+                                        className="capitalize"
+                                        checked={column.getIsVisible()}
+                                        onCheckedChange={(value) =>
+                                            column.toggleVisibility(!!value)
+                                        }
+                                    >
+                                        {column.id}
+                                    </DropdownMenuCheckboxItem>
                                 ))}
-                            </TableRow>
-                        ))}
-                    </TableHeader>
-                    <TableBody>
-                        {table.getRowModel().rows?.length ? (
-                            table.getRowModel().rows.map((row) => (
-                                <TableRow
-                                    key={row.id}
-                                    data-state={row.getIsSelected() && "selected"}
-                                >
-                                    {row.getVisibleCells().map((cell) => (
-                                        <TableCell key={cell.id}>
-                                            {flexRender(
-                                                cell.column.columnDef.cell,
-                                                cell.getContext()
-                                            )}
-                                        </TableCell>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </div>
+                <div className="rounded-md border">
+                    <Table>
+                        <TableHeader>
+                            {table.getHeaderGroups().map((headerGroup) => (
+                                <TableRow key={headerGroup.id}>
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id}>
+                                            {header.isPlaceholder
+                                                ? null
+                                                : flexRender(
+                                                    header.column.columnDef.header,
+                                                    header.getContext()
+                                                )}
+                                        </TableHead>
                                     ))}
                                 </TableRow>
-                            ))
-                        ) : (
-                            <TableRow>
-                                <TableCell
-                                    colSpan={columns.length}
-                                    className="h-24 text-center"
-                                >
-                                    {t('No tasks found')}
-                                </TableCell>
-                            </TableRow>
-                        )}
-                    </TableBody>
-                </Table>
+                            ))}
+                        </TableHeader>
+                        <TableBody>
+                            {table.getRowModel().rows?.length ? (
+                                table.getRowModel().rows.map((row) => (
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && "selected"}
+                                    >
+                                        {row.getVisibleCells().map((cell) => (
+                                            <TableCell key={cell.id}>
+                                                {flexRender(
+                                                    cell.column.columnDef.cell,
+                                                    cell.getContext()
+                                                )}
+                                            </TableCell>
+                                        ))}
+                                    </TableRow>
+                                ))
+                            ) : (
+                                <TableRow>
+                                    <TableCell
+                                        colSpan={columns.length}
+                                        className="h-24 text-center"
+                                    >
+                                        {t('No tasks found')}
+                                    </TableCell>
+                                </TableRow>
+                            )}
+                        </TableBody>
+                    </Table>
+                </div>
             </div>
-        </div>
+        </ErrorBoundary>
     )
 }
-

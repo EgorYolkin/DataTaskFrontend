@@ -72,7 +72,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
         if (!project) {
             return (
                 <SidebarProvider>
-                    <AppSidebar navMain={navMain} user={user} projects={projects}/>
+                    <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
                     <SidebarInset>
                         <header className="flex h-16 shrink-0 items-center gap-2">
                             <div className="flex items-center gap-2 px-5">
@@ -104,7 +104,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
 
         return (
             <SidebarProvider>
-                <AppSidebar navMain={navMain} user={user} projects={projects}/>
+                <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
                 <SidebarInset>
                     <header className="flex h-16 shrink-0 items-center gap-2">
                         <div className="flex items-center gap-2 px-5">
@@ -157,7 +157,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
     if (!project || !topic) {
         return (
             <SidebarProvider>
-                <AppSidebar navMain={navMain} user={user} projects={projects}/>
+                <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
                 <SidebarInset>
                     <header className="flex h-16 shrink-0 items-center gap-2">
                         <div className="flex items-center gap-2 px-5">
@@ -191,7 +191,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({navMain, proj
 
     return (
         <SidebarProvider>
-            <AppSidebar navMain={navMain} user={user} projects={projects}/>
+            <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2">
                     <div className="flex items-center gap-2 px-5">
