@@ -56,6 +56,7 @@ export const TaskDialog: React.FC<TaskDialogProps> = ({
                                                           editingTitle,
                                                           setEditingTitle,
                                                           editingDescription,
+                                                          setEditingDescription,
                                                           isCompleted,
                                                           setIsCompleted,
                                                           handleSave,
