@@ -59,6 +59,7 @@ export function LoginForm({
         try {
             const accessToken = await loginUser({email, password});
             localStorage.setItem('accessToken', accessToken);
+            alert(accessToken);
             onLoginSuccess?.(accessToken);
         } catch (error: any) {
             setErrorMessage(error.message || t('An error occurred during login'));
@@ -67,9 +68,9 @@ export function LoginForm({
             setIsLoading(false);
         }
 
-        if (errorMessage === null) {
-            window.location.href = "/dashboard";
-        }
+        // if (errorMessage === null) {
+        //     window.location.href = "/";
+        // }
     }, [email, password, t, onLoginSuccess, onLoginError]);
 
     return (
