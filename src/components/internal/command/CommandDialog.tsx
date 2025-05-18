@@ -56,7 +56,7 @@ export function Command({ projects }: CommandProps) {
                     <CommandEmpty>No results found.</CommandEmpty>
 
                     <CommandGroup heading={t('Suggestions')}>
-                        <CommandItem onSelect={() => handleSelectItem("/dashboard")}>
+                        <CommandItem onSelect={() => handleSelectItem("/")}>
                             <CheckIcon className="mr-2 h-4 w-4" />
                             <span className="text-[black]">{t('Current tasks')}</span>
                         </CommandItem>

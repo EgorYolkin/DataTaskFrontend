@@ -96,7 +96,7 @@ export const CreateProjectDashboard: React.FC<CreateProjectDashboardProps> = ({n
             console.log(parentProjectID);
             await createProject(projectDataToSend);
 
-            document.location = "/dashboard";
+            document.location = "/";
 
         } catch (error: any) {
             console.error("Ошибка при создании проекта:", error);
