@@ -2,6 +2,16 @@ import * as React from "react"
 import {KanbanInterface} from "@/interfaces/TasksInterfase.tsx"
 import {Input} from "@/components/ui/input"
 import {TrashIcon} from "lucide-react"
+import {useTranslation} from "react-i18next";
+import {
+    Dialog, DialogClose,
+    DialogContent,
+    DialogDescription, DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
+} from "@/components/ui/dialog.tsx";
+import {Button} from "@/components/ui/button.tsx";
 
 async function deleteKanban(kanbanID: number) {
     const apiUrl = import.meta.env.VITE_API_URL;
@@ -31,6 +41,51 @@ async function deleteKanban(kanbanID: number) {
     window.location.reload();
     const responseData = await response.json();
     return responseData;
+}
+
+interface DeleteKanbanDialogProps {
+    kanbanID: number;
+    deleteKanban: (taskID: number) => void;
+}
+
+export const DeleteKanbanDialog: React.FC<DeleteKanbanDialogProps> = ({kanbanID, deleteKanban}) => {
+    const [t] = useTranslation();
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <div
+                    className="text-red-500 w-fit cursor-pointer"
+                >
+                    <TrashIcon className="w-5 h-5"/>
+                </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>{t('Delete kanban')}?</DialogTitle>
+                    <DialogDescription>
+                        {t('Confirm deletion of the kanban')}
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                        <div className="flex gap-2">
+                            <Button type="button" className="text-white" variant="secondary">
+                                {t('Cancel')}
+                            </Button>
+                            <div
+                                onClick={() => {
+                                    deleteKanban(kanbanID);
+                                }}
+                                className="flex items-center gap-2 cursor-pointer  bg-red-500 text-white  pr-4 pl-4 pt-1 pb-1 rounded-sm">
+                                {t('Delete kanban')}
+                            </div>
+                        </div>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
 }
 
 interface KanbanHeaderProps {
@@ -98,9 +153,9 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({kanban, onKanbanNameC
             >
                 {editingName || kanban?.name || "Backlog"}
             </div>
-            <div onClick={() => deleteKanban(kanban.id)}>
-                <TrashIcon className="w-4 text-red-500"/>
-            </div>
+            {kanban?.id && (
+                <DeleteKanbanDialog deleteKanban={deleteKanban} kanbanID={kanban.id} />
+            )}
         </div>
     )
 }

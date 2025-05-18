@@ -1,13 +1,66 @@
 import * as React from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { CheckStatus } from "@/components/internal/tasks/components/CheckStatus.tsx";
-import { TaskInterface } from "@/interfaces/TasksInterfase.tsx";
-import { TFunction } from "i18next";
-import { TrashIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+    Dialog, DialogClose,
+    DialogContent,
+    DialogDescription, DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger
+} from "@/components/ui/dialog";
+import {Input} from "@/components/ui/input";
+import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx";
+import {TaskInterface} from "@/interfaces/TasksInterfase.tsx";
+import {TFunction} from "i18next";
+import {TrashIcon} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import {Textarea} from "@/components/ui/textarea";
+import {ScrollArea} from "@/components/ui/scroll-area";
+import {useTranslation} from "react-i18next";
+
+interface DeleteTaskDialogProps {
+    taskID: number;
+    deleteTask: (taskID: number) => void;
+}
+
+export const DeleteTaskDialog: React.FC<DeleteTaskDialogProps> = ({taskID, deleteTask}) => {
+    const [t] = useTranslation();
+
+    return (
+        <Dialog>
+            <DialogTrigger asChild>
+                <div
+                    className="text-red-500 w-fit cursor-pointer"
+                >
+                    <TrashIcon className="w-5 h-5"/>
+                </div>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle>{t('Delete task')}?</DialogTitle>
+                    <DialogDescription>
+                        {t('Confirm deletion of the task')}
+                    </DialogDescription>
+                </DialogHeader>
+                <DialogFooter className="sm:justify-start">
+                    <DialogClose asChild>
+                        <div className="flex gap-2">
+                            <Button type="button" className="text-white" variant="secondary">
+                                {t('Cancel')}
+                            </Button>
+                            <div
+                                onClick={() => {
+                                    deleteTask(taskID);
+                                }}
+                                className="flex items-center gap-2 cursor-pointer  bg-red-500 text-white  pr-4 pl-4 pt-1 pb-1 rounded-sm">
+                                {t('Delete task')}
+                            </div>
+                        </div>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}
 
 interface CommentInterface {
     id: number;
@@ -212,18 +265,9 @@ export const TaskDialog: React.FC<TaskDialogProps> = ({
                         )}
                     </div>
                     <div className="w-[30%] flex justify-end">
-                        <div
-                            className="text-red-500 w-fit cursor-pointer"
-                            onClick={() => {
-                                if (task?.id) {
-                                    deleteTask(task.id);
-                                } else {
-                                    console.warn("ID задачи не найден при попытке удаления.");
-                                }
-                            }}
-                        >
-                            <TrashIcon className="w-5 h-5" />
-                        </div>
+                        {task?.id && (
+                            <DeleteTaskDialog taskID={task.id} deleteTask={deleteTask}/>
+                        )}
                     </div>
                 </div>
                 {task && (
