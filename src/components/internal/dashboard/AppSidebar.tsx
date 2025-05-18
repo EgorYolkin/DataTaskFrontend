@@ -20,6 +20,7 @@ import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
 import {Folder} from "lucide-react";
 import {NavSharedProjects} from "@/components/internal/dashboard/NavSharedProjects.tsx";
+import {Link} from "react-router-dom";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     navMain: DashboardSidebarItemInterface[];
@@ -66,9 +67,9 @@ export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: 
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
                             <div className="flex items-center">
-                                <a href="/">
+                                <Link to="/">
                                     <img src={logo} width="150px" alt=""/>
-                                </a>
+                                </Link>
                             </div>
                         </SidebarMenuButton>
                     </SidebarMenuItem>

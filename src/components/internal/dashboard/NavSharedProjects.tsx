@@ -16,6 +16,7 @@ import {
     SidebarMenuSubItem,
 } from "@/components/ui/sidebar";
 import {useTranslation} from "react-i18next";
+import {Link} from "react-router-dom";
 
 export interface ProjectNavItem {
     title: string;
@@ -50,13 +51,13 @@ export function NavSharedProjects({items}: { items: ProjectNavItem[] }) {
                                         style={{backgroundColor: item.color ? `${item.color}20` : undefined}}
                                     >
                                         <div className="flex w-full">
-                                            <a href={item.url} className="flex items-center gap-1">
+                                            <Link to={item.url} className="flex items-center gap-1">
                                                 {item.icon && <item.icon className="text-black" width="1em"/>}
                                                 <span className="text-black">
                                                     {t(item.title)}
                                                     {item.taskCount ? ` (${item.taskCount})` : ""}
                                                 </span>
-                                            </a>
+                                            </Link>
                                         </div>
                                     </SidebarMenuButton>
                                     {item.items?.length ? (
@@ -65,9 +66,9 @@ export function NavSharedProjects({items}: { items: ProjectNavItem[] }) {
                                                 {item.items.map((subItem) => (
                                                     <SidebarMenuSubItem key={subItem.title}>
                                                         <SidebarMenuSubButton asChild>
-                                                            <a href={subItem.url}>
+                                                            <Link to={subItem.url}>
                                                                 <span className="text-black">{t(subItem.title)}</span>
-                                                            </a>
+                                                            </Link>
                                                         </SidebarMenuSubButton>
                                                     </SidebarMenuSubItem>
                                                 ))}

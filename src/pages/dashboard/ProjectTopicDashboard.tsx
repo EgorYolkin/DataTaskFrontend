@@ -22,7 +22,6 @@ import {ProjectDashboardTasks} from "@/components/internal/tasks/ProjectDashboar
 import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
-import {KanbanInterface} from "@/interfaces/TasksInterfase.tsx";
 import {Button} from "@/components/ui/button.tsx";
 import {
     Dialog,
@@ -82,7 +81,7 @@ const DashboardHeader: React.FC = () => {
 
 interface ProjectTopicInfoProps {
     project: ProjectInterface;
-    topic: { name: string; kanbans?: KanbanInterface[]; id: number };
+    topic: ProjectInterface;
 }
 
 const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
@@ -91,8 +90,6 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                                                            }) => {
     const [t] = useTranslation();
     const kanbans = topic.kanbans || [];
-
-    console.log(project.allowedUsers);
 
     return (
         <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
@@ -105,7 +102,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                 </div>
                 <div className="flex-col gap-10">
                     <div className="flex items-center gap-2">
-                        {project.allowedUsers.map((user) => (
+                        {topic.allowedUsers.map((user) => (
                             <div
                                 className="flex items-center gap-2 cursor-pointer  bg-black text-white w-fit pr-6 pl-1 pt-1 pb-1 rounded-[15px]">
                                 <Avatar className="h-8 w-8 rounded-lg">
@@ -117,7 +114,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                         ))}
                     </div>
                     <div className="mt-3">
-                        <InviteUserDialog projectID={project.id}></InviteUserDialog>
+                        <InviteUserDialog projectID={topic.id}></InviteUserDialog>
                     </div>
                 </div>
             </div>

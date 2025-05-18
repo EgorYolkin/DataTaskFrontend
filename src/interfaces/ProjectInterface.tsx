@@ -1,13 +1,5 @@
 import {KanbanInterface} from "@/interfaces/TasksInterfase.tsx";
 
-export interface ProjectTopicInterface {
-    id: number;
-    name: string;
-    color: string;
-    description: string;
-    kanbans: KanbanInterface[];
-}
-
 export interface ProjectAllowedUserInterface {
     id: number;
     avatarUrl: string;
@@ -22,6 +14,7 @@ export interface ProjectInterface {
     color: string;
     description: string;
     allowedUsers: ProjectAllowedUserInterface[];
-    topics: ProjectTopicInterface[];
+    kanbans: KanbanInterface[];
+    topics: ProjectInterface[];
 }
 

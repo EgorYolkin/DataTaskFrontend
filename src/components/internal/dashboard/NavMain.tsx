@@ -18,6 +18,7 @@ import {
     SidebarMenuSubItem,
 } from "@/components/ui/sidebar"
 import {useTranslation} from "react-i18next";
+import {Link} from "react-router-dom";
 
 export function NavMain({
                             items,
@@ -44,10 +45,10 @@ export function NavMain({
                         <SidebarMenuItem>
                             <SidebarMenuButton asChild tooltip={item.title}>
                                 <CollapsibleTrigger asChild>
-                                    <a href={item.url}>
+                                    <Link to={item.url}>
                                         <item.icon className={"text-black"} width={"1.5em"}/>
                                         <span className="text-black">{t(item.title)}</span>
-                                    </a>
+                                    </Link>
                                 </CollapsibleTrigger>
                             </SidebarMenuButton>
                             {item.items?.length ? (
@@ -57,9 +58,9 @@ export function NavMain({
                                             {item.items?.map((subItem) => (
                                                 <SidebarMenuSubItem key={subItem.title}>
                                                     <SidebarMenuSubButton asChild>
-                                                        <a href={subItem.url}>
+                                                        <Link to={subItem.url}>
                                                             <span className="text-black">{t(subItem.title)}</span>
-                                                        </a>
+                                                        </Link>
                                                     </SidebarMenuSubButton>
                                                 </SidebarMenuSubItem>
                                             ))}

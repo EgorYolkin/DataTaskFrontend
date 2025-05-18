@@ -1,26 +1,22 @@
-.fade-in {
-    opacity: 0;
+.route-wrapper {
+    position: relative;
+    width: 100vw;
+    min-height: 100vh;
+}
+
+.route-container {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    min-height: 100vh;
     transition: opacity 0.3s ease-in-out;
 }
 
-.fade-in.active {
+.route-container.fade-in {
     opacity: 1;
 }
 
-.fade-out {
-    opacity: 1;
-    transition: opacity 0.3s ease-in-out;
-}
-
-.fade-out.active {
+.route-container.fade-out {
     opacity: 0;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-.animate-spin {
-    animation: spin 1s linear infinite;
 }

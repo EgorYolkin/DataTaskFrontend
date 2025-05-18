@@ -68,7 +68,7 @@ export function NavUser({user}: { user: UserInterface }) {
                             </div>
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator/>
-                        <DropdownMenuItem onClick={() => {
+                        <DropdownMenuItem className="cursor-pointer" onClick={() => {
                             localStorage.removeItem("accessToken");
                             window.location.reload();
 

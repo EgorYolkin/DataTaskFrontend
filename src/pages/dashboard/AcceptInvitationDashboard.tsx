@@ -10,11 +10,10 @@ import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterf
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
 import {CheckCircleIcon, AlertTriangleIcon} from "lucide-react";
-import {Button} from "@/components/ui/button";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {toast} from "sonner"
 
-async function acceptInvitation(projectID: number) {
+async function acceptInvitation(projectID: number, t: any) {
     const apiUrl = import.meta.env.VITE_API_URL;
     const apiVersion = import.meta.env.VITE_API_VERSION;
 
@@ -33,11 +32,11 @@ async function acceptInvitation(projectID: number) {
             errorData = await response.json();
             console.error("Ошибка от сервера:", errorData);
             throw new Error(
-                errorData?.message || `Ошибка принятия приглашения: ${response.status}`
+                errorData?.message || `${t('Invitation acceptance error')}: ${response.status}`
             );
         } catch (e) {
             console.error("Ошибка при обработке ответа об ошибке:", e);
-            throw new Error(`Ошибка принятия приглашения: ${response.status}`);
+            throw new Error(`${t('Invitation acceptance error')}: ${response.status}`);
         }
     }
 
@@ -70,11 +69,11 @@ export const AcceptInvitationDashboard: React.FC<AcceptInvitationDashboardProps>
             const projectIdNumber = parseInt(projectIdFromUrl, 10);
             if (!isNaN(projectIdNumber)) {
                 setIsAccepting(true);
-                acceptInvitation(projectIdNumber)
+                acceptInvitation(projectIdNumber, t)
                     .then(() => {
                         setAcceptanceResult("success");
                         toast(t("Invitation accepted"));
-                        setTimeout(() => navigate("/dashboard"), 3000);
+                        setTimeout(() => navigate("/"), 3000);
                     })
                     .catch((error) => {
                         console.error("Error accepting invitation:", error);
@@ -132,9 +131,9 @@ export const AcceptInvitationDashboard: React.FC<AcceptInvitationDashboardProps>
                                 <p className="text-lg font-medium text-center">{t('Failed to accept invitation.')}</p>
                                 {errorMessage &&
                                     <p className="text-sm text-muted-foreground text-center">{errorMessage}</p>}
-                                <Button variant="outline" onClick={() => navigate("/dashboard")}>
+                                <div className="cursor-pointer bg-black rounded-xl p-2 text-white" onClick={() => navigate("/")}>
                                     {t('Go to Dashboard')}
-                                </Button>
+                                </div>
                             </div>
                         )}
 

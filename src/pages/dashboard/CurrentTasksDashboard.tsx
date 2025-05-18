@@ -15,10 +15,10 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/internal/dashboard/AppSidebar.tsx";
 import { useTranslation } from "react-i18next";
-import { Input } from "@/components/ui/input.tsx";
-import { CreateTaskFormCombobox } from "@/components/internal/forms/CreateTaskFormCombobox.tsx";
-import { Button } from "@/components/ui/button.tsx";
-import { SendHorizontal } from "lucide-react";
+// import { Input } from "@/components/ui/input.tsx";
+// import { CreateTaskFormCombobox } from "@/components/internal/forms/CreateTaskFormCombobox.tsx";
+// import { Button } from "@/components/ui/button.tsx";
+// import { SendHorizontal } from "lucide-react";
 import { DashboardSidebarItemInterface } from "@/interfaces/DashboardSidebarInterface.tsx";
 import { UserInterface } from "@/interfaces/UserInterface.tsx";
 import { ProjectInterface } from "@/interfaces/ProjectInterface.tsx";
@@ -93,22 +93,22 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({ na
                         </Breadcrumb>
                     </div>
                 </header>
-                <div className="flex flex-1 flex-col gap-4 p-4 pt-0 w-full items-center p-[20px]">
+                <div className="flex flex-1 flex-col gap-4 pt-0 w-full items-center p-[20px]">
                     <div className="border-1 rounded-xl w-[100%] xl:w-[60%] p-3">
-                        <div className="flex justify-center text-sm gap-2 flex-wrap ">
-                            <Input type="email" placeholder={t("Task") + "..."} />
-                            <div className="flex w-full gap-1">
-                                <div className="w-[40%] sm:w-auto">
-                                    <CreateTaskFormCombobox projects={projects} />
-                                </div>
-                                <Button className="w-[60%] sm:w-auto">
-                                    {t('Publish')} <SendHorizontal />
-                                </Button>
-                            </div>
-                        </div>
-                        <div className="mt-[20px]">
-                            <Separator orientation="horizontal" className="mr-2 h-4 " />
-                        </div>
+                        {/*<div className="flex justify-center text-sm gap-2 flex-wrap ">*/}
+                        {/*    <Input type="email" placeholder={t("Task") + "..."} />*/}
+                        {/*    <div className="flex w-full gap-1">*/}
+                        {/*        <div className="w-[40%] sm:w-auto">*/}
+                        {/*            <CreateTaskFormCombobox projects={projects} />*/}
+                        {/*        </div>*/}
+                        {/*        <Button className="w-[60%] sm:w-auto">*/}
+                        {/*            {t('Publish')} <SendHorizontal />*/}
+                        {/*        </Button>*/}
+                        {/*    </div>*/}
+                        {/*</div>*/}
+                        {/*<div className="mt-[20px]">*/}
+                        {/*    <Separator orientation="horizontal" className="mr-2 h-4 " />*/}
+                        {/*</div>*/}
                         <div className="flex justify-center gap-2">
                             <DashboardTasks tasks={tasks} />
                         </div>

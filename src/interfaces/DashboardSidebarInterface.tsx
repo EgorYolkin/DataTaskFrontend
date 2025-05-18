@@ -16,7 +16,7 @@ export interface DashboardSidebarInterface {
 export const DefaultDashboardSidebarItems: DashboardSidebarItemInterface[] = [
     {
         title: "Current tasks",
-        url: "/dashboard",
+        url: "/",
         icon: CheckIcon,
         isActive: true,
     },

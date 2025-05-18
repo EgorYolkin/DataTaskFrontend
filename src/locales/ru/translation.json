@@ -55,6 +55,10 @@
 
   "Select project": "Выбрать проект",
 
+  "Invitation acceptance error": "Ошибка принятия приглашения",
+  "Failed to accept invitation": "Приглашение не принято",
+  "Go to dashboard": "Вернуться в панель",
+
   "Notifications": "Уведомления",
   "Account": "Аккаунт",
   "Status": "Статус",
