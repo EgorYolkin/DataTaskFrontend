@@ -1,6 +1,6 @@
 services:
   frontend:
-    container_name: autopilot_frontend
+    container_name: datatask_frontend
     build:
       context: .
       dockerfile: Dockerfile
