@@ -69,9 +69,8 @@ export function RegisterForm({
 
         try {
             const userData = {name, surname, email, password};
-            const rData = await createUser(userData, t);
-            localStorage.setItem('accessToken', rData.data.access_token);
-            window.location.href = "/";
+            await createUser(userData, t);
+            window.location.href = "/auth/login";
         } catch (err: any) {
             setErrorMessage(err.message || t('An error occurred during registration'));
             onError?.(err.message || t('An error occurred during registration'));

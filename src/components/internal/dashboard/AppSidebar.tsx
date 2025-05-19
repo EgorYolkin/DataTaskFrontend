@@ -30,8 +30,6 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 }
 
 export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: AppSidebarProps) {
-    console.log("AppSidebar pr", projects, "spr", sharedProjects, user);
-
     const projectItems: ProjectNavItem[] = projects && projects.length > 0
         ? projects.map((project) => ({
             title: project.name,

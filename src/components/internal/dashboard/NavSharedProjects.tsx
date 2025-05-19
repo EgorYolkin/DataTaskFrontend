@@ -32,15 +32,11 @@ export interface ProjectNavItem {
 export function NavSharedProjects({items}: { items: ProjectNavItem[] }) {
     const [t] = useTranslation();
 
-    // Отфильтровываем элементы, у которых есть подпроекты (items)
-    // @ts-ignore
-    const mainProjects = items.filter(item => item.items?.length > 0);
-
     return (
         <SidebarGroup>
             <SidebarGroupLabel>{t("Shared projects")}</SidebarGroupLabel>
             <SidebarMenu>
-                {mainProjects.map((item) => (
+                {items.map((item) => (
                     <Collapsible key={item.title} asChild defaultOpen={true}>
                         <SidebarMenuItem>
                             {item.items?.length ? (
