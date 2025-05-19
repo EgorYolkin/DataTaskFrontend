@@ -278,6 +278,7 @@ function App() {
             try {
                 const data = await getProjects(user.id)
                 setProjects(data)
+                console.log("pr", projects)
             } catch (error) {
                 toast('Get projects error')
             }
@@ -287,6 +288,7 @@ function App() {
             try {
                 const data = await getSharedProjects(user.id)
                 setSharedProjects(data)
+                console.log("srp", sharedProjects)
             } catch (error) {
                 toast('Get shared projects error')
             }
