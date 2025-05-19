@@ -39,39 +39,35 @@ export function NavSharedProjects({items}: { items: ProjectNavItem[] }) {
                 {items.map((item) => (
                     <Collapsible key={item.title} asChild defaultOpen={true}>
                         <SidebarMenuItem>
-                            {item.items?.length ? (
-                                <>
-                                    <SidebarMenuButton
-                                        asChild
-                                        tooltip={item.description || item.title}
-                                        style={{backgroundColor: item.color ? `${item.color}20` : undefined}}
-                                    >
-                                        <div className="flex w-full">
-                                            <Link to={item.url} className="flex items-center gap-1">
-                                                {item.icon && <item.icon className="text-black" width="1em"/>}
-                                                <span className="text-black">
+                            <SidebarMenuButton
+                                asChild
+                                tooltip={item.description || item.title}
+                                style={{backgroundColor: item.color ? `${item.color}20` : undefined}}
+                            >
+                                <div className="flex w-full">
+                                    <Link to={item.url} className="flex items-center gap-1">
+                                        {item.icon && <item.icon className="text-black" width="1em"/>}
+                                        <span className="text-black">
                                                     {t(item.title)}
-                                                    {item.taskCount ? ` (${item.taskCount})` : ""}
+                                            {item.taskCount ? ` (${item.taskCount})` : ""}
                                                 </span>
-                                            </Link>
-                                        </div>
-                                    </SidebarMenuButton>
-                                    {item.items?.length ? (
-                                        <CollapsibleContent>
-                                            <SidebarMenuSub>
-                                                {item.items.map((subItem) => (
-                                                    <SidebarMenuSubItem key={subItem.title}>
-                                                        <SidebarMenuSubButton asChild>
-                                                            <Link to={subItem.url}>
-                                                                <span className="text-black">{t(subItem.title)}</span>
-                                                            </Link>
-                                                        </SidebarMenuSubButton>
-                                                    </SidebarMenuSubItem>
-                                                ))}
-                                            </SidebarMenuSub>
-                                        </CollapsibleContent>
-                                    ) : null}
-                                </>
+                                    </Link>
+                                </div>
+                            </SidebarMenuButton>
+                            {item.items?.length ? (
+                                <CollapsibleContent>
+                                    <SidebarMenuSub>
+                                        {item.items.map((subItem) => (
+                                            <SidebarMenuSubItem key={subItem.title}>
+                                                <SidebarMenuSubButton asChild>
+                                                    <Link to={subItem.url}>
+                                                        <span className="text-black">{t(subItem.title)}</span>
+                                                    </Link>
+                                                </SidebarMenuSubButton>
+                                            </SidebarMenuSubItem>
+                                        ))}
+                                    </SidebarMenuSub>
+                                </CollapsibleContent>
                             ) : null}
                         </SidebarMenuItem>
                     </Collapsible>
