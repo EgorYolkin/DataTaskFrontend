@@ -130,7 +130,7 @@ export const AcceptInvitationDashboard: React.FC<AcceptInvitationDashboardProps>
                                 <AlertTriangleIcon className="w-10 h-10 text-red-500"/>
                                 <p className="text-lg font-medium text-center">{t('Failed to accept invitation.')}</p>
                                 {errorMessage &&
-                                    <p className="text-sm text-muted-foreground text-center">{errorMessage}</p>}
+                                    <p className="text-sm text-muted-foreground text-center">{t(errorMessage)}</p>}
                                 <div className="cursor-pointer bg-black rounded-xl p-2 text-white" onClick={() => navigate("/")}>
                                     {t('Go to Dashboard')}
                                 </div>

@@ -19,6 +19,7 @@ import {FetchResponse} from "@/interfaces/FetchResponse.tsx"
 import {AcceptInvitationDashboard} from "@/pages/dashboard/AcceptInvitationDashboard.tsx"
 import {Toaster} from "@/components/ui/sonner"
 import {ProjectDashboard} from "@/pages/dashboard/ProjectDashboard.tsx";
+import {toast} from "sonner";
 
 export function ProtectedRoute({isAuth, children}: { isAuth: boolean; children: React.ReactNode }) {
     if (!isAuth) {
@@ -218,7 +219,7 @@ interface jwtDecodedI extends JwtPayload {
 }
 
 // Component to wrap routes with transition
-const RouteTransition: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+const RouteTransition: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const location = useLocation()
     const [displayedChildren, setDisplayedChildren] = useState(children)
     const [fadeClass, setFadeClass] = useState('fade-in')
@@ -228,7 +229,7 @@ const RouteTransition: React.FC<{ children: React.ReactNode }> = ({ children }) 
         const timer = setTimeout(() => {
             setDisplayedChildren(children)
             setFadeClass('fade-in')
-        }, 300) // Match CSS transition duration
+        }, 100)
         return () => clearTimeout(timer)
     }, [location.pathname, children])
 
@@ -252,15 +253,19 @@ function App() {
     }
 
     if (localStorage.getItem('accessToken')) {
-        const userDecoded: jwtDecodedI = jwtDecode(localStorage.getItem('accessToken') || "")
-        isAuth = true
-        const userIdStr = String(userDecoded.user_id)
-        user = {
-            id: userDecoded.user_id,
-            email: userDecoded.user_email,
-            name: userIdStr,
-            surname: "",
-            avatarUrl: "",
+        try {
+            const userDecoded: jwtDecodedI = jwtDecode(localStorage.getItem('accessToken') || "")
+            isAuth = true
+            const userIdStr = String(userDecoded.user_id)
+            user = {
+                id: userDecoded.user_id,
+                email: userDecoded.user_email,
+                name: userIdStr,
+                surname: "",
+                avatarUrl: "",
+            }
+        } catch (err) {
+            toast('Auth error')
         }
     }
 
@@ -274,7 +279,7 @@ function App() {
                 const data = await getProjects(user.id)
                 setProjects(data)
             } catch (error) {
-                console.error("Ошибка при получении проектов:", error)
+                toast('Get projects error')
             }
         }
 
@@ -283,7 +288,7 @@ function App() {
                 const data = await getSharedProjects(user.id)
                 setSharedProjects(data)
             } catch (error) {
-                console.error("Ошибка при получении совместных проектов:", error)
+                toast('Get shared projects error')
             }
         }
 

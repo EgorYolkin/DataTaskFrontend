@@ -384,7 +384,7 @@ export const CreateKanbanDialog: React.FC<CreateKanbanDialogProps> = ({
                 <div>
                     {errorMessage && (
                         <div className="p-2 text-sm text-red-600 bg-red-100 rounded-md mb-[10px]">
-                            {errorMessage}
+                            {t(errorMessage)}
                         </div>
                     )}
                     <Input
@@ -513,7 +513,7 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({projectID}) =
                 <div>
                     {errorMessage && (
                         <div className="p-2 text-sm text-red-600 bg-red-100 rounded-md mb-[10px]">
-                            {errorMessage}
+                            {t(errorMessage)}
                         </div>
                     )}
                     {successfulMessage && (

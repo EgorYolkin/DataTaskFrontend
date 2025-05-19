@@ -26,7 +26,6 @@ async function loginUser(credentials: Record<string, string>): Promise<string> {
     const data = await response.json();
 
     if (!response.ok) {
-        console.log(data);
         throw new Error(data?.error || `Ошибка входа: ${response.status}`);
     }
 
@@ -59,18 +58,14 @@ export function LoginForm({
         try {
             const accessToken = await loginUser({email, password});
             localStorage.setItem('accessToken', accessToken);
-            alert(accessToken);
             onLoginSuccess?.(accessToken);
+            window.location.href = "/";
         } catch (error: any) {
             setErrorMessage(error.message || t('An error occurred during login'));
             onLoginError?.(error.message || t('An error occurred during login'));
         } finally {
             setIsLoading(false);
         }
-
-        // if (errorMessage === null) {
-        //     window.location.href = "/";
-        // }
     }, [email, password, t, onLoginSuccess, onLoginError]);
 
     return (
@@ -84,7 +79,7 @@ export function LoginForm({
             <div className="grid gap-6">
                 {errorMessage && (
                     <div className="p-2 text-sm text-red-600 bg-red-100 rounded-md">
-                        {errorMessage}
+                        {t(errorMessage)}
                     </div>
                 )}
                 <div className="grid gap-2">

@@ -140,7 +140,7 @@ export const CreateProjectDashboard: React.FC<CreateProjectDashboardProps> = ({n
                             <br/>
                             {errorMessage && (
                                 <div className="p-2 text-sm text-red-600 bg-red-100 rounded-md mb-[10px]">
-                                    {errorMessage}
+                                    {t(errorMessage)}
                                 </div>
                             )}
                             <span className="text-2xl flex items-center gap-3">

@@ -6,12 +6,12 @@ import {useTranslation} from "react-i18next";
 import React, {useState, useCallback} from "react";
 import {FetchResponse} from "@/interfaces/FetchResponse.tsx";
 
-interface RegisterFormProps extends Omit<React.ComponentPropsWithoutRef<"form">, "onError"> {
-    onSuccess?: () => void;
+interface RegisterFormProps extends Omit<React.ComponentPropsWithoutRef<"div">, "onError"> {
+    onSuccess?: (accessToken: string) => void;
     onError?: (error: string) => void;
 }
 
-async function createUser(userData: Record<string, string>): Promise<FetchResponse> {
+async function createUser(userData: Record<string, string>, t: (tr: string) => string): Promise<FetchResponse> {
     const apiUrl = import.meta.env.VITE_API_URL;
     const apiVersion = import.meta.env.VITE_API_VERSION;
 
@@ -24,12 +24,14 @@ async function createUser(userData: Record<string, string>): Promise<FetchRespon
         body: JSON.stringify(userData),
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData?.message || `Ошибка регистрации: ${response.status}`);
+        console.log(data);
+        throw new Error(data?.message || `${t("Sign up error")}: ${response.status}`);
     }
 
-    return response.json();
+    return data;
 }
 
 export function RegisterForm({
@@ -67,10 +69,9 @@ export function RegisterForm({
 
         try {
             const userData = {name, surname, email, password};
-            const rData = await createUser(userData);
-            localStorage.setItem('accessToken', rData.data.accessToken);
-            window.location.href = "/auth/login";
-            onSuccess?.();
+            const rData = await createUser(userData, t);
+            localStorage.setItem('accessToken', rData.data.access_token);
+            window.location.href = "/";
         } catch (err: any) {
             setErrorMessage(err.message || t('An error occurred during registration'));
             onError?.(err.message || t('An error occurred during registration'));
@@ -80,7 +81,7 @@ export function RegisterForm({
     }, [email, name, password, surname, t, onSuccess, onError, isFormValid]);
 
     return (
-        <form onSubmit={(e) => e.preventDefault()} className={cn("flex flex-col gap-6", className)} {...props}>
+        <div onSubmit={(e) => e.preventDefault()} className={cn("flex flex-col gap-6", className)} {...props}>
             <div className="flex flex-col items-center gap-2 text-center">
                 <h1 className="text-2xl font-bold">{t('Register your account')}</h1>
                 <p className="text-balance text-sm text-muted-foreground">
@@ -90,7 +91,7 @@ export function RegisterForm({
             <div className="grid gap-6">
                 {errorMessage && (
                     <div className="p-2 text-sm text-red-600 bg-red-100 rounded-md">
-                        {errorMessage}
+                        {t(errorMessage)}
                     </div>
                 )}
                 <div className="grid gap-2">
@@ -129,7 +130,6 @@ export function RegisterForm({
                 <div className="grid gap-2">
                     <div className="flex items-center">
                         <Label htmlFor="password">{t('Password')}</Label>
-                        {/* Можно добавить ссылку "Забыли пароль?" здесь, если это необходимо */}
                     </div>
                     <Input
                         onChange={(e) => handleInputChange(e, setPassword)}
@@ -149,6 +149,6 @@ export function RegisterForm({
                     {t('Login')}
                 </a>
             </div>
-        </form>
+        </div>
     );
 }

@@ -12,7 +12,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { TaskInterface } from "@/interfaces/TasksInterfase.tsx";
 import { useTranslation } from "react-i18next";
-import { TaskRow } from "@/components/internal/tasks/TaskRow"; // Import TaskRow
+import { TaskRow } from "@/components/internal/tasks/TaskRow";
+import {Separator} from "@/components/ui/separator.tsx"; // Import TaskRow
 
 // Global filter function (остается без изменений)
 const globalFilterFn = (task: TaskInterface, filterValue: string) => {
@@ -32,7 +33,6 @@ export function DashboardTasks({ tasks }: { tasks: TaskInterface[] }) {
     });
     const [t] = useTranslation();
 
-    // Debugging logs (остаются без изменений)
     useEffect(() => {
         console.log("Tasks received:", tasks);
         console.log("Filtered tasks:", filteredTasks);
@@ -75,17 +75,19 @@ export function DashboardTasks({ tasks }: { tasks: TaskInterface[] }) {
 
     return (
         <div className="w-full p-4">
-            {/* Filter and Controls (остаются без изменений) */}
-            <div className="flex items-center justify-between py-4">
+
+            <span className="text-2xl font-semibold">{t('All tasks')}</span>
+            <Separator className="mt-4"/>
+            <div className="flex items-center justify-between py-4 gap-2 flex-wrap">
                 <Input
                     placeholder={`${t("Filter tasks")}...`}
                     value={globalFilter}
                     onChange={(event) => setGlobalFilter(event.target.value)}
-                    className="max-w-sm"
+                    className="max-w-sm w-full"
                 />
                 <div className="flex items-center gap-4">
                     <div
-                        className="flex items-center gap-2 cursor-pointer hover:bg-gray-100 p-2 rounded"
+                        className="flex font-semibold items-center gap-2 cursor-pointer hover:bg-gray-800 p-2 bg-black text-white rounded-[15px]"
                         onClick={toggleSort}
                     >
                         {t("Sort by Title")}
@@ -96,7 +98,7 @@ export function DashboardTasks({ tasks }: { tasks: TaskInterface[] }) {
                     </div>
                     <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <div className="flex items-center cursor-pointer gap-2 hover:bg-gray-100 p-2 rounded">
+                            <div className="flex font-semibold items-center gap-2 cursor-pointer hover:bg-gray-800 p-2 bg-black text-white rounded-[15px]">
                                 {t("Columns")} <ChevronDown size="1em" />
                             </div>
                         </DropdownMenuTrigger>
@@ -108,14 +110,14 @@ export function DashboardTasks({ tasks }: { tasks: TaskInterface[] }) {
                                     checked={columnVisibility[column as keyof typeof columnVisibility]}
                                     onCheckedChange={() => toggleColumnVisibility(column as keyof typeof columnVisibility)}
                                 >
-                                    {column}
+                                    {column}u
                                 </DropdownMenuCheckboxItem>
                             ))}
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>
             </div>
-
+            <Separator/>
             <div className="space-y-2">
                 {filteredTasks.length > 0 ? (
                     filteredTasks.map((task) => (
