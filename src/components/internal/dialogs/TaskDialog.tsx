@@ -17,6 +17,37 @@ import {Textarea} from "@/components/ui/textarea";
 import {ScrollArea} from "@/components/ui/scroll-area";
 import {useTranslation} from "react-i18next";
 
+import {differenceInSeconds, differenceInMinutes, differenceInHours, differenceInDays} from 'date-fns';
+
+interface TaskTimestamps {
+    created_at: string;
+    updated_at: string;
+}
+
+function formatTaskDuration(timestamps: TaskTimestamps, t: (tr: string) => string): string {
+    const createdAt = new Date(timestamps.created_at);
+    const updatedAt = new Date(timestamps.updated_at);
+
+    const seconds = differenceInSeconds(updatedAt, createdAt);
+
+    if (seconds < 60) {
+        return `${t('Task complete for')} ${seconds} ${t('seconds')}.`;
+    }
+
+    const minutes = differenceInMinutes(updatedAt, createdAt);
+    if (minutes < 60) {
+        return `${t('Task complete for')} ${minutes} ${t('minutes')}.`;
+    }
+
+    const hours = differenceInHours(updatedAt, createdAt);
+    if (hours < 24) {
+        return `${t('Task complete for')} ${hours} ${t('hours')}.`;
+    }
+
+    const days = differenceInDays(updatedAt, createdAt);
+    return `З${t('Task complete for')} ${days} ${t('days')}.`;
+}
+
 interface DeleteTaskDialogProps {
     taskID: number;
     deleteTask: (taskID: number) => void;
@@ -61,6 +92,16 @@ export const DeleteTaskDialog: React.FC<DeleteTaskDialogProps> = ({taskID, delet
         </Dialog>
     )
 }
+
+const commentTimeFormatter = new Intl.DateTimeFormat('ru-RU', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Yekaterinburg'
+});
 
 interface CommentInterface {
     id: number;
@@ -235,32 +276,7 @@ export const TaskDialog: React.FC<TaskDialogProps> = ({
                                 className="text-xl font-semibold cursor-pointer"
                                 onClick={() => setIsEditingTitle(true)}
                             >
-                                {task?.title}
-                            </span>
-                        )}
-                        {isEditingDescription ? (
-                            <textarea
-                                value={editingDescription}
-                                onChange={(e) => setEditingDescription(e.target.value)}
-                                onBlur={handleSave}
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                        handleSave();
-                                    } else if (e.key === "Escape") {
-                                        e.preventDefault();
-                                        setIsEditingDescription(false);
-                                    }
-                                }}
-                                autoFocus
-                                className="text-sm text-gray-700 w-full"
-                            />
-                        ) : (
-                            <span
-                                className="text-sm text-gray-700 cursor-pointer"
-                                onClick={() => setIsEditingDescription(true)}
-                            >
-                                {task?.description || t("No description provided.")}
+                                {editingTitle}
                             </span>
                         )}
                     </div>
@@ -270,8 +286,35 @@ export const TaskDialog: React.FC<TaskDialogProps> = ({
                         )}
                     </div>
                 </div>
+                <div>
+                    {isEditingDescription ? (
+                        <Textarea
+                            value={editingDescription}
+                            onChange={(e) => setEditingDescription(e.target.value)}
+                            onBlur={handleSave}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    handleSave();
+                                } else if (e.key === "Escape") {
+                                    e.preventDefault();
+                                    setIsEditingDescription(false);
+                                }
+                            }}
+                            autoFocus
+                            className="text-sm text-gray-700 w-full min-h-[100px]"
+                        />
+                    ) : (
+                        <span
+                            className="text-sm text-gray-700 cursor-pointer"
+                            onClick={() => setIsEditingDescription(true)}
+                        >
+                                {editingDescription || t("No description provided.")}
+                            </span>
+                    )}
+                </div>
                 {task && (
-                    <div className="space-y-4 mt-4">
+                    <div className="space-y-4">
                         <div>
                             <h4 className="font-semibold">{t("Status")}</h4>
                             <span
@@ -282,35 +325,43 @@ export const TaskDialog: React.FC<TaskDialogProps> = ({
                                     isCompleted={isCompleted}
                                     taskID={task.id}
                                 />
-                                <span className="text-sm font-semibold">
-                                    {isCompleted ? t("Completed") : t("Don't completed")}
-                                </span>
-                            </span>
-                        </div>
-
-                        {/* Секция комментариев */}
-                        <div>
-                            <h4 className="font-semibold">{t("Comments")}</h4>
-                            <ScrollArea className="h-40 w-full rounded-md pr-2">
-                                <div className="mt-2 space-y-2">
-                                    {comments.map((comment) => (
-                                        <div key={comment.id} className="p-3 bg-gray-100 rounded-md">
-                                            <p className="text-sm text-gray-500">
-                                                {comment.author.name || comment.author.email} -{" "}
-                                                {new Date(comment.created_at).toLocaleString()}
-                                            </p>
-                                            <p className="text-gray-800">{comment.text}</p>
-                                        </div>
-                                    ))}
-                                    {comments.length === 0 && (
-                                        <p className="text-sm text-gray-500">{t("No comments yet.")}</p>
+                                <div className="flex flex-col">
+                                    <span className="text-sm font-semibold">
+                                        {isCompleted ? t("Completed") : t("Don't completed")}
+                                    </span>
+                                    {isCompleted && (
+                                        <span className="text-sm font-light">
+                                        {task?.created_at && formatTaskDuration({
+                                            created_at: task.created_at,
+                                            updated_at: task.updated_at
+                                        }, t)}
+                                    </span>
                                     )}
                                 </div>
-                            </ScrollArea>
+                            </span>
                         </div>
-
-                        {/* Добавление нового комментария */}
-                        <div className="mt-4 flex gap-2">
+                        {comments.length > 0 && (
+                            <div>
+                                <h4 className="font-semibold">{t("Comments")}</h4>
+                                <ScrollArea className="h-40 w-full rounded-md pr-2">
+                                    <div className="mt-2 space-y-2">
+                                        {comments.map((comment) => (
+                                            <div key={comment.id} className="p-3 bg-gray-100 rounded-md">
+                                                <p className="text-sm text-gray-500">
+                                                    {comment.author.name || comment.author.email} -{" "}
+                                                    {commentTimeFormatter.format(new Date(comment.created_at))}
+                                                </p>
+                                                <p className="text-gray-800">{comment.text}</p>
+                                            </div>
+                                        ))}
+                                        {comments.length === 0 && (
+                                            <p className="text-sm text-gray-500">{t("No comments yet")}</p>
+                                        )}
+                                    </div>
+                                </ScrollArea>
+                            </div>
+                        )}
+                        <div className="mt-5 flex gap-2">
                             <Textarea
                                 value={newCommentText}
                                 onChange={(e) => setNewCommentText(e.target.value)}

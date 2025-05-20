@@ -106,31 +106,41 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
                             <div className="flex-col m-4 mt-0">
                                 <Separator orientation="horizontal" className="mr-2 h-4 mb-6"/>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
-                                    {projects.reverse().map((project) => (
-                                        <Link to={`/project/${project.name}`} key={project.id} className="block">
-                                            <div
-                                                className="flex-col border rounded-lg p-3 bg-white cursor-pointer hover:shadow-md transition-shadow flex justify-start gap-4 h-full"
-                                            >
-                                                <div className="flex flex-col">
-                    <span className="text-sm text-white bg-black rounded-full w-fit p-1 pr-4 pl-4">
-                        {project.parent_project_id ? (
-                            t('Topic')
-                        ) : (
-                            t('Project')
-                        )}
-                    </span>
-                                                    <br/>
-                                                    <span className="font-semibold text-3xl text-black">
-                        {project.name}
-                    </span>
-                                                    <span className="text-gray-600">
-                        {project.description}
-                    </span>
+                                    {projects.length > 0 && (
+                                        projects.reverse().map((project) => (
+                                            <Link to={`/project/${project.name}`} key={project.id}
+                                                  className="block">
+                                                <div
+                                                    className="flex-col border rounded-lg p-3 bg-white cursor-pointer hover:shadow-md transition-shadow flex justify-start gap-4 h-full"
+                                                >
+                                                    <div className="flex flex-col">
+                                                    <span
+                                                        className="text-sm text-white bg-black rounded-full w-fit p-1 pr-4 pl-4">
+                                                        {project.parent_project_id ? (
+                                                            t('Topic')
+                                                        ) : (
+                                                            t('Project')
+                                                        )}
+                                                    </span>
+                                                        <br/>
+                                                        <span className="font-semibold text-3xl text-black">
+                                                        {project.name}
+                                                    </span>
+                                                        <span className="text-gray-600">
+                                                        {project.description}
+                                                    </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Link>
-                                    ))}
+                                            </Link>
+                                        ))
+
+                                    )}
                                 </div>
+                                {projects.length <= 0 && (
+                                    <div className="text-center py-8 text-gray-500">
+                                        {t("No projects found")}
+                                    </div>
+                                )}
                             </div>
                         </div>
                     </div>

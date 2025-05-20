@@ -272,7 +272,6 @@ function App() {
                 setIsAuth(false);
                 setUser(DefaultUser);
             }
-            setIsLoading(false);
         };
 
         checkAuthAndFetchUser();

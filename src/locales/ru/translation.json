@@ -80,8 +80,17 @@
   "No members": "Нет участников",
   "No notifications": "Нет уведомлений",
   "No tasks found": "Задачи не найдены",
+  "No projects found": "Проекты не найдены",
+  "Sort by title": "Сорт. по заголовку",
+  "Sort by Title": "Сорт. по заголовку",
+  "Columns": "Столбцы",
   "No users assigned": "Исполнители не добавлены",
   "Notifications": "Уведомления",
+
+  "Task complete for": "Задача выполнена за",
+  "seconds": "секунд",
+  "hours": "часов",
+  "minutes": "минут",
 
   "Old password": "Старый пароль",
 
