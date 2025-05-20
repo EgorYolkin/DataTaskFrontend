@@ -257,7 +257,7 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarImage src={user.avatarUrl} alt={user.avatarUrl}/>
                                     <AvatarFallback
-                                        className="rounded-lg bg-gray-500">{user.name[0].toUpperCase()}{user.name[1].toUpperCase()}</AvatarFallback>
+                                        className="rounded-lg bg-gray-500">{user.name[0].toUpperCase()}{user.surname[0].toUpperCase()}</AvatarFallback>
                                 </Avatar>
                                 {user.name} {user.surname}
                             </div>
