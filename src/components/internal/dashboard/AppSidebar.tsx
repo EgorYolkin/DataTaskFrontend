@@ -29,6 +29,8 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     user: UserInterface;
 }
 
+const productVersion = import.meta.env.VITE_PRODUCT_VERSION;
+
 export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: AppSidebarProps) {
     const projectItems: ProjectNavItem[] = projects && projects.length > 0
         ? projects.map((project) => ({
@@ -68,10 +70,15 @@ export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: 
                 <SidebarMenu>
                     <SidebarMenuItem>
                         <SidebarMenuButton size="lg" asChild>
-                            <div className="flex items-center">
-                                <Link to="/">
-                                    <img src={logo} width="150px" alt=""/>
-                                </Link>
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center">
+                                    <Link to="/">
+                                        <img src={logo} width="150px" alt=""/>
+                                    </Link>
+                                </div>
+                                <div className="font-semibold text-sm text-gray-300">
+                                    {productVersion}
+                                </div>
                             </div>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
