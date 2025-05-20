@@ -114,9 +114,9 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
                                                 <div className="flex flex-col">
                     <span className="text-sm text-white bg-black rounded-full w-fit p-1 pr-4 pl-4">
                         {project.parent_project_id ? (
-                            t('Project')
-                        ) : (
                             t('Topic')
+                        ) : (
+                            t('Project')
                         )}
                     </span>
                                                     <br/>
