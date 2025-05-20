@@ -38,6 +38,7 @@ export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: 
             color: project.color,
             description: project.description,
             isActive: false,
+            parentProjectID: project.parent_project_id,
             items: project.topics.map((topic) => ({
                 title: topic.name,
                 url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}/${topic.name.toLowerCase().replace(/\s+/g, "-")}`,
@@ -52,6 +53,7 @@ export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: 
             icon: Folder,
             color: project.color,
             description: project.description,
+            parentProjectID: project.parent_project_id,
             isActive: false,
             items: project.topics.map((topic) => ({
                 title: topic.name,

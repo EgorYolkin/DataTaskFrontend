@@ -81,11 +81,13 @@ const DashboardHeader: React.FC = () => {
 
 interface ProjectTopicInfoProps {
     project: ProjectInterface;
+    user: UserInterface;
     topic: ProjectInterface;
 }
 
 const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                                                                project,
+                                                               user,
                                                                topic,
                                                            }) => {
     const [t] = useTranslation();
@@ -122,15 +124,17 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                                 </AvatarFallback>
                             </Avatar>
                         </div>
-                        <div
-                            className="flex items-center gap-2 cursor-pointer  bg-red-500 text-white  pr-1 pl-1 pt-1 pb-1 rounded-[15px]">
-                            <Avatar className="h-8 w-[130px] rounded-lg">
-                                <AvatarFallback
-                                    className="rounded-lg bg-red-500">
-                                    <DeleteProjectDialog projectID={project.id}></DeleteProjectDialog>
-                                </AvatarFallback>
-                            </Avatar>
-                        </div>
+                        {project.owner_id == user.id && (
+                            <div
+                                className="flex items-center gap-2 cursor-pointer  bg-red-500 text-white  pr-1 pl-1 pt-1 pb-1 rounded-[15px]">
+                                <Avatar className="h-8 w-[130px] rounded-lg">
+                                    <AvatarFallback
+                                        className="rounded-lg bg-red-500">
+                                        <DeleteProjectDialog projectID={project.id}></DeleteProjectDialog>
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -162,7 +166,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
     );
 };
 
-async function deleteProject(projectID: number) {
+async function deleteProject(projectID: number, t: (tr: string) => string) {
     const apiUrl = import.meta.env.VITE_API_URL;
     const apiVersion = import.meta.env.VITE_API_VERSION;
 
@@ -179,6 +183,7 @@ async function deleteProject(projectID: number) {
         let errorData;
         try {
             errorData = await response.json();
+            toast(t('Delete project error') + `: ${errorData.error}`);
             throw new Error(errorData?.message || `Ошибка удаления проекта: ${response.status}`);
         } catch (e) {
             throw new Error(`Ошибка удаления проекта: ${response.status}`);
@@ -215,7 +220,7 @@ export const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({project
                             </Button>
                             <div
                                 onClick={() => {
-                                    deleteProject(projectID)
+                                    deleteProject(projectID, t)
                                 }}
                                 className="flex items-center gap-2 cursor-pointer  bg-red-500 text-white  pr-4 pl-4 pt-1 pb-1 rounded-sm">
                                 {t('Delete project')}
@@ -230,6 +235,7 @@ export const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({project
 
 const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                                                           project,
+                                                          user
                                                       }) => {
     const [t] = useTranslation();
     const kanbans = project.kanbans || [];
@@ -265,15 +271,17 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                                 </AvatarFallback>
                             </Avatar>
                         </div>
-                        <div
-                            className="flex items-center gap-2 cursor-pointer  bg-red-500 text-white  pr-1 pl-1 pt-1 pb-1 rounded-[15px]">
-                            <Avatar className="h-8 w-[130px] rounded-lg">
-                                <AvatarFallback
-                                    className="rounded-lg bg-red-500">
-                                    <DeleteProjectDialog projectID={project.id}></DeleteProjectDialog>
-                                </AvatarFallback>
-                            </Avatar>
-                        </div>
+                        {project.owner_id == user.id && (
+                            <div
+                                className="flex items-center gap-2 cursor-pointer  bg-red-500 text-white  pr-1 pl-1 pt-1 pb-1 rounded-[15px]">
+                                <Avatar className="h-8 w-[130px] rounded-lg">
+                                    <AvatarFallback
+                                        className="rounded-lg bg-red-500">
+                                        <DeleteProjectDialog projectID={project.id}></DeleteProjectDialog>
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>
@@ -414,7 +422,7 @@ export const CreateKanbanDialog: React.FC<CreateKanbanDialogProps> = ({
 };
 
 async function inviteUser(
-    inviteData: Record<string, string | number | undefined>,
+    inviteData: any,
     projectID: number,
     t: (key: string) => string,
 ) {
@@ -455,29 +463,14 @@ interface InviteUserDialogProps {
 }
 
 export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({projectID}) => {
-    const [userID, setUserID] = useState<number | null>(null);
+    const [userEmail, setUserEmail] = useState<string | null>(null);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [successfulMessage, setSuccessfulMessage] = useState<string | null>(null);
     const [t] = useTranslation();
 
-    const handleUserIDChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const value = e.target.value;
-        const parsedUserID = parseInt(value, 10);
-        if (!isNaN(parsedUserID)) {
-            setUserID(parsedUserID);
-            setErrorMessage(null);
-        } else if (value !== "") {
-            setErrorMessage(t("Please enter a valid User ID"));
-            setUserID(null);
-        } else {
-            setUserID(null);
-            setErrorMessage(null);
-        }
-    };
-
     const handleUserInvite = useCallback(async () => {
-        if (userID === null) {
-            setErrorMessage(t("Please enter a User ID"));
+        if (userEmail === null) {
+            setErrorMessage(t("Please enter a user email"));
             return;
         }
 
@@ -486,7 +479,7 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({projectID}) =
         const inviteDataToSend = {
             permission: "read",
             project_id: projectID,
-            user_id: userID,
+            user_email: userEmail,
         };
 
         try {
@@ -499,7 +492,7 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({projectID}) =
                 error.message || t("An error occurred while inviting the user")
             );
         }
-    }, [t, userID, projectID]);
+    }, [t, userEmail, projectID]);
 
     return (
         <Dialog>
@@ -522,9 +515,9 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({projectID}) =
                         </div>
                     )}
                     <Input
-                        onChange={handleUserIDChange}
+                        onChange={(e) => setUserEmail(e.target.value)}
                         type="text"
-                        placeholder={t("User ID")}
+                        placeholder={t("User email")}
                     />
                 </div>
                 <DialogFooter className="sm:justify-start">
@@ -559,8 +552,6 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
         topicName?: string;
     }>();
     const [t] = useTranslation();
-
-    console.log(projectName, topicName);
 
     if (!projectName && !topicName) {
         return (
@@ -668,7 +659,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                         className="flex items-center justify-center w-full p-[20px]"
                         onClick={() => console.log("Клик по главному контейнеру")}
                     >
-                        <ProjectInfo project={project} topic={project}/>
+                        <ProjectInfo user={user} project={project} topic={project}/>
                     </div>
                 </SidebarInset>
             </SidebarProvider>
@@ -706,7 +697,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                         className="flex items-center justify-center w-full p-[20px]"
                         onClick={() => console.log("Клик по главному контейнеру")}
                     >
-                        <ProjectTopicInfo project={project} topic={topic}/>
+                        <ProjectTopicInfo user={user} project={project} topic={topic}/>
                     </div>
                 </SidebarInset>
             </SidebarProvider>

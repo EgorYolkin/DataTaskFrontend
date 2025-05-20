@@ -11,6 +11,8 @@ export interface ProjectAllowedUserInterface {
 export interface ProjectInterface {
     id: number;
     name: string;
+    owner_id: number;
+    parent_project_id: number;
     color: string;
     description: string;
     allowedUsers: ProjectAllowedUserInterface[];

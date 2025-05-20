@@ -96,7 +96,7 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({ na
                 <div className="flex flex-1 flex-col gap-4 pt-0 w-full items-center p-[20px]">
                     <div className="border-1 rounded-xl w-[100%] xl:w-[60%] p-3">
                         <div className="flex justify-center gap-2">
-                            <DashboardTasks tasks={tasks} />
+                            <DashboardTasks user={user} tasks={tasks} />
                         </div>
                     </div>
                 </div>

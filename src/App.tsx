@@ -8,11 +8,9 @@ import {Command} from "@/components/internal/command/CommandDialog.tsx"
 import {LocalSettingsDashboard} from "@/pages/dashboard/LocalSettingsDashboard.tsx"
 import {Navigate} from "react-router-dom"
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx"
-import {UserInterface} from "@/interfaces/UserInterface.tsx"
+import {DefaultUser, UserInterface} from "@/interfaces/UserInterface.tsx"
 import {DefaultDashboardSidebarItems} from "@/interfaces/DashboardSidebarInterface.tsx"
-// import {ProjectDashboard1} from "@/pages/dashboard/ProjectDashboard1.tsx"
 import {CreateProjectDashboard} from "@/pages/dashboard/CreateProjectDashboard.tsx"
-import {jwtDecode, JwtPayload} from "jwt-decode"
 import React, {useState, useEffect} from 'react'
 import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
 import {FetchResponse} from "@/interfaces/FetchResponse.tsx"
@@ -74,7 +72,6 @@ const fetchProjectUsers = async (projectId: number): Promise<UserInterface[]> =>
     }
 }
 
-// Новая функция для получения пользователей темы
 const fetchTopicUsers = async (topicId: number): Promise<UserInterface[]> => {
     try {
         const response: FetchResponse = await fetchWithErrorHandling(
@@ -127,6 +124,8 @@ const processTopic = async (topic: any): Promise<any> => {
     return {
         id: topic.id,
         name: topic.name,
+        owner_id: topic.owner_id,
+        parent_project_id: topic.parent_project_id,
         color: topic.color,
         description: topic.description,
         kanbans,
@@ -184,6 +183,8 @@ const processProject = async (project: any): Promise<ProjectInterface> => {
 
     return {
         id: project.id,
+        owner_id: project.owner_id,
+        parent_project_id: project.parent_project_id,
         name: project.name,
         color: project.color,
         description: project.description,
@@ -213,12 +214,6 @@ async function getSharedProjects(
     return Promise.all(projectsRaw.map(processProject))
 }
 
-interface jwtDecodedI extends JwtPayload {
-    user_id: number
-    user_email: string
-}
-
-// Component to wrap routes with transition
 const RouteTransition: React.FC<{ children: React.ReactNode }> = ({children}) => {
     const location = useLocation()
     const [displayedChildren, setDisplayedChildren] = useState(children)
@@ -242,36 +237,49 @@ const RouteTransition: React.FC<{ children: React.ReactNode }> = ({children}) =>
     )
 }
 
-function App() {
-    let isAuth = false
-    let user: UserInterface = {
-        id: 0,
-        email: "",
-        name: "",
-        surname: "",
-        avatarUrl: "",
+const fetchUser = async (): Promise<UserInterface> => {
+    try {
+        const response: FetchResponse = await fetchWithErrorHandling(
+            `${apiUrl}/api/${apiVersion}/user/me`
+        );
+        return response.data || DefaultUser;
+    } catch (err) {
+        toast(`Failed to fetch user`);
+        return DefaultUser;
     }
+};
 
-    if (localStorage.getItem('accessToken')) {
-        try {
-            const userDecoded: jwtDecodedI = jwtDecode(localStorage.getItem('accessToken') || "")
-            isAuth = true
-            const userIdStr = String(userDecoded.user_id)
-            user = {
-                id: userDecoded.user_id,
-                email: userDecoded.user_email,
-                name: userIdStr,
-                surname: "",
-                avatarUrl: "",
+function App() {
+    const [isAuth, setIsAuth] = useState(false);
+    const [user, setUser] = useState<UserInterface>(DefaultUser);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const checkAuthAndFetchUser = async () => {
+            setIsLoading(true);
+            if (localStorage.getItem('accessToken')) {
+                try {
+                    const fetchedUser = await fetchUser();
+                    setUser(fetchedUser);
+                    setIsAuth(true);
+                } catch (err) {
+                    toast('Auth error');
+                    localStorage.removeItem('accessToken');
+                    setIsAuth(false);
+                    setUser(DefaultUser);
+                }
+            } else {
+                setIsAuth(false);
+                setUser(DefaultUser);
             }
-        } catch (err) {
-            toast('Auth error')
-        }
-    }
+            setIsLoading(false);
+        };
+
+        checkAuthAndFetchUser();
+    }, []);
 
     const [projects, setProjects] = useState<ProjectInterface[]>([])
     const [sharedProjects, setSharedProjects] = useState<ProjectInterface[]>([])
-    const [loading, setLoading] = useState(true)
 
     useEffect(() => {
         const fetchProjects = async () => {
@@ -296,7 +304,7 @@ function App() {
 
         const fetchData = async () => {
             await Promise.all([fetchProjects(), fetchSharedProjects()])
-            setLoading(false)
+            setIsLoading(false)
         }
 
         fetchData()
@@ -305,7 +313,7 @@ function App() {
     return (
         <Router>
             <Toaster/>
-            {loading ? (
+            {isLoading ? (
                 <div className="fixed top-0 left-0 w-full h-full bg-white flex justify-center items-center z-50">
                     <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
                 </div>

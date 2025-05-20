@@ -35,6 +35,7 @@
 
   "Get projects error": "Ошибка получения проектов",
   "Get shared projects error": "Ошибка получения совместных проектов",
+  "Delete project error": "Ошибка удаления проекта",
   "Edit project": "Редактировать проект",
   "Edit task": "Редактировать задачу",
   "Email": "Почта",
@@ -106,6 +107,7 @@
   "Review": "Обзор",
 
   "Save changes": "Сохранить изменения",
+  "Failed to fetch user": "Ошибка загрузки пользователя",
   "Search": "Поиск",
   "Search language": "Поиск языка",
   "Select language": "Выбрать язык",
@@ -145,5 +147,10 @@
   "View task": "Посмотреть задачу",
   "Vitaly": "Виталий",
 
-  "Yesterday": "Вчера"
+  "Yesterday": "Вчера",
+
+  "Good morning": "Доброе утро",
+  "Good afternoon": "Добрый день",
+  "Good evening": "Добрый вечер",
+  "Good night": "Доброй ночи"
 }

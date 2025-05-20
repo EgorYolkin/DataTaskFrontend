@@ -5,3 +5,11 @@ export interface UserInterface {
     email: string;
     avatarUrl: string;
 }
+
+export const DefaultUser: UserInterface = {
+    id: 0,
+    email: "",
+    name: "",
+    surname: "",
+    avatarUrl: "",
+};
