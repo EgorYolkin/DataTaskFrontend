@@ -1,12 +1,13 @@
 // TaskRow.tsx
 "use client";
 
-import React from "react";
-import {TaskInterface} from "@/interfaces/TasksInterfase.tsx";
-import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx";
-import {TaskDialog} from "@/components/internal/dialogs/TaskDialog.tsx";
-import {useTranslation} from "react-i18next";
+import React, { useState, useEffect } from "react";
+import { TaskInterface } from "@/interfaces/TasksInterfase.tsx";
+import { CheckStatus } from "@/components/internal/tasks/components/CheckStatus.tsx";
+import { TaskDialog } from "@/components/internal/dialogs/TaskDialog.tsx";
+import { useTranslation } from "react-i18next";
 
+// --- API functions (remain unchanged) ---
 async function updateTask(taskData: any, taskID: number) {
     const apiUrl = import.meta.env.VITE_API_URL;
     const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -66,6 +67,7 @@ async function deleteTask(taskID: number) {
     const responseData = await response.json();
     return responseData;
 }
+// --- End API functions ---
 
 interface TaskRowProps {
     task: TaskInterface;
@@ -76,6 +78,7 @@ interface TaskRowProps {
     };
 }
 
+// ErrorBoundary (remains unchanged)
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: Error | null }> {
     constructor(props: { children: React.ReactNode }) {
         super(props);
@@ -99,20 +102,22 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
     }
 }
 
+const DESCRIPTION_PREVIEW_LENGTH = 40; // Characters for description preview
+
 export const TaskRow: React.FC<TaskRowProps> = ({task, columnVisibility}) => {
-    const [isModalOpen, setIsModalOpen] = React.useState(false)
-    const [isEditingTitle, setIsEditingTitle] = React.useState(false)
-    const [isEditingDescription, setIsEditingDescription] = React.useState(false)
-    const [editingTitle, setEditingTitle] = React.useState(task.title)
-    const [editingDescription, setEditingDescription] = React.useState(task.description || "")
-    const [isCompleted, setIsCompleted] = React.useState(task.is_completed)
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isEditingTitle, setIsEditingTitle] = useState(false);
+    const [isEditingDescription, setIsEditingDescription] = useState(false);
+    const [editingTitle, setEditingTitle] = useState(task.title);
+    const [editingDescription, setEditingDescription] = useState(task.description || "");
+    const [isCompleted, setIsCompleted] = useState(task.is_completed);
     const [t] = useTranslation();
 
-    React.useEffect(() => {
-        setEditingTitle(task.title)
-        setEditingDescription(task.description || "")
-        setIsCompleted(task.is_completed)
-    }, [task])
+    useEffect(() => {
+        setEditingTitle(task.title);
+        setEditingDescription(task.description || "");
+        setIsCompleted(task.is_completed);
+    }, [task]);
 
     const handleSave = async () => {
         const updatedTask = {
@@ -141,10 +146,13 @@ export const TaskRow: React.FC<TaskRowProps> = ({task, columnVisibility}) => {
         }
     }
 
+    const shouldShowExpandLink = task.description && task.description.length > DESCRIPTION_PREVIEW_LENGTH;
+
     return (
         <div
-            className="border flex rounded-lg p-3 bg-white cursor-pointer hover:shadow-md transition-shadow flex items-center gap-4">
-            <div className="flex items-center gap-5">
+            className="border flex flex-col sm:flex-row rounded-lg p-3 bg-white cursor-pointer hover:shadow-md transition-shadow items-start sm:items-center gap-2 sm:gap-4">
+            {/* Checkbox and ErrorBoundary */}
+            <div className="flex-shrink-0"> {/* Ensures checkbox doesn't shrink */}
                 <ErrorBoundary>
                     <div onClick={handleTaskUpdate}>
                         <CheckStatus taskID={task.id} isCompleted={task.is_completed}/>
@@ -152,22 +160,46 @@ export const TaskRow: React.FC<TaskRowProps> = ({task, columnVisibility}) => {
                 </ErrorBoundary>
             </div>
 
-            <div onClick={() => setIsModalOpen(true)} className="flex items-center justify-between gap-5 w-full">
-                <div className="flex items-center gap-5 justify-between w-full">
+            {/* Main clickable content area (title, description, users) */}
+            <div onClick={() => setIsModalOpen(true)} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-5 w-full">
+                {/* Container for title and description */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-5 w-full sm:w-auto sm:flex-grow">
                     {columnVisibility.title && (
-                        <div className="font-semibold text-sm">{task.title}</div>
+                        <div className="font-semibold text-sm flex-shrink-0">
+                            {task.title}
+                        </div>
                     )}
                     {columnVisibility.description && task.description && (
-                        <div className="text-gray-600 text-sm">{task.description}</div>
+                        <div className="text-gray-600 text-sm flex-grow">
+                            {shouldShowExpandLink ? (
+                                <>
+                                    {task.description.slice(0, DESCRIPTION_PREVIEW_LENGTH)}...
+                                    <span
+                                        className="text-blue-500 hover:underline text-xs ml-1"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsModalOpen(true);
+                                        }}
+                                    >
+                                        {t("Развернуть")}
+                                    </span>
+                                </>
+                            ) : (
+                                task.description
+                            )}
+                        </div>
                     )}
                 </div>
+
+                {/* Users column */}
                 {columnVisibility.users && (
-                    <div className="text-sm text-gray-500 w-fit">
+                    <div className="text-sm text-gray-500 flex-shrink-0 w-full sm:w-fit mt-2 sm:mt-0">
                         {task.users?.map((user) => user.name).join(", ") || ""}
                     </div>
                 )}
             </div>
 
+            {/* TaskDialog (remains unchanged) */}
             <TaskDialog
                 isOpen={isModalOpen}
                 onOpenChange={setIsModalOpen}

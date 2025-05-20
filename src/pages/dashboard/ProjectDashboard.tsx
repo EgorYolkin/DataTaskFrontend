@@ -190,7 +190,7 @@ async function deleteProject(projectID: number, t: (tr: string) => string) {
         }
     }
 
-    window.location.reload();
+    window.location.href = "/";
 }
 
 interface DeleteProjectDialogProps {

@@ -132,7 +132,7 @@ export function DashboardTasks({tasks, user}: { tasks: TaskInterface[], user: Us
                                     checked={columnVisibility[column as keyof typeof columnVisibility]}
                                     onCheckedChange={() => toggleColumnVisibility(column as keyof typeof columnVisibility)}
                                 >
-                                    {column}u
+                                    {column}
                                 </DropdownMenuCheckboxItem>
                             ))}
                         </DropdownMenuContent>
