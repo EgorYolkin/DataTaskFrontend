@@ -15,10 +15,6 @@ import {
 } from "@/components/ui/sidebar";
 import {AppSidebar} from "@/components/internal/dashboard/AppSidebar.tsx";
 import {useTranslation} from "react-i18next";
-// import { Input } from "@/components/ui/input.tsx";
-// import { CreateTaskFormCombobox } from "@/components/internal/forms/CreateTaskFormCombobox.tsx";
-// import { Button } from "@/components/ui/button.tsx";
-// import { SendHorizontal } from "lucide-react";
 import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
 import {UserInterface} from "@/interfaces/UserInterface.tsx";
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx";
@@ -142,6 +138,48 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
                                     </div>
                                 )}
                             </div>
+                            {sharedProjects.length > 0 && (
+                                <div className="flex-col m-4 mt-0">
+                                    <Separator orientation="horizontal" className="mr-2 h-4 mb-6"/>
+                                    <div
+                                        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
+                                        {sharedProjects.length > 0 && (
+                                            sharedProjects.reverse().map((sharedProject) => (
+                                                <Link to={`/project/${sharedProject.name}`} key={sharedProject.id}
+                                                      className="block">
+                                                    <div
+                                                        className="flex-col border rounded-lg p-3 bg-white cursor-pointer hover:shadow-md transition-shadow flex justify-start gap-4 h-full"
+                                                    >
+                                                        <div className="flex flex-col">
+                                                    <span
+                                                        className="text-sm text-white bg-black rounded-full w-fit p-1 pr-4 pl-4">
+                                                        {sharedProject.parent_project_id ? (
+                                                            t('Shared topic')
+                                                        ) : (
+                                                            t('Shared project')
+                                                        )}
+                                                    </span>
+                                                            <br/>
+                                                            <span className="font-semibold text-3xl text-black">
+                                                        {sharedProject.name}
+                                                    </span>
+                                                            <span className="text-gray-600">
+                                                        {sharedProject.description}
+                                                    </span>
+                                                        </div>
+                                                    </div>
+                                                </Link>
+                                            ))
+
+                                        )}
+                                    </div>
+                                    {projects.length <= 0 && (
+                                        <div className="text-center py-8 text-gray-500">
+                                            {t("No projects found")}
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

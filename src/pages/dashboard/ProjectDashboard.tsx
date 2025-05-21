@@ -33,9 +33,10 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input.tsx";
-import {UserPlus} from "lucide-react";
+import {List, LayoutDashboard, UserPlus} from "lucide-react"; // Импортируем иконки для переключения
 import {toast} from "sonner";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
+import {ProjectListTasks} from "@/components/internal/tasks/ProjectListTasks.tsx";
 
 interface ProjectDashboardProps {
     navMain: DashboardSidebarItemInterface[];
@@ -43,6 +44,9 @@ interface ProjectDashboardProps {
     sharedProjects: ProjectInterface[];
     user: UserInterface;
 }
+
+// Режимы отображения
+type DisplayMode = 'kanban' | 'list';
 
 const NotFoundContent: React.FC<{ message: string }> = ({message}) => {
     const [t] = useTranslation();
@@ -56,7 +60,16 @@ const NotFoundContent: React.FC<{ message: string }> = ({message}) => {
     );
 };
 
-const DashboardHeader: React.FC = () => {
+const DashboardHeader: React.FC<{
+    currentProjectName?: string;
+    currentTopicName?: string;
+    displayMode: string;
+    onDisplayModeChange: (mode: DisplayMode) => void;
+}> = ({currentProjectName, currentTopicName, displayMode, onDisplayModeChange}) => {
+    React.useEffect(() => {
+        localStorage.setItem("displayMode", displayMode);
+    }, [displayMode]);
+
     const [t] = useTranslation();
     return (
         <header className="flex h-16 shrink-0 items-center gap-2">
@@ -70,10 +83,32 @@ const DashboardHeader: React.FC = () => {
                         </BreadcrumbItem>
                         <BreadcrumbSeparator className="hidden md:block"/>
                         <BreadcrumbItem>
-                            <BreadcrumbPage>{t("Not Found")}</BreadcrumbPage>
+                            <BreadcrumbPage>
+                                {currentProjectName && currentTopicName
+                                    ? `${currentProjectName} / ${currentTopicName}`
+                                    : currentProjectName
+                                        ? currentProjectName
+                                        : t("Not Found")}
+                            </BreadcrumbPage>
                         </BreadcrumbItem>
                     </BreadcrumbList>
                 </Breadcrumb>
+            </div>
+            <div className="ml-auto mr-5 flex gap-2">
+                <div
+                    className="flex items-center pr-4 pl-4 bg-black text-white cursor-pointer rounded-xl w-full p-2"
+                    onClick={() => onDisplayModeChange('kanban')}
+                >
+                    <LayoutDashboard className="h-4 w-4 mr-2"/>
+                    {t("Kanban")}
+                </div>
+                <div
+                    className="flex items-center pr-4 pl-4 bg-black text-white cursor-pointer rounded-xl w-full p-2"
+                    onClick={() => onDisplayModeChange('list')}
+                >
+                    <List className="h-4 w-4 mr-2"/>
+                    {t("List")}
+                </div>
             </div>
         </header>
     );
@@ -83,12 +118,14 @@ interface ProjectTopicInfoProps {
     project: ProjectInterface;
     user: UserInterface;
     topic: ProjectInterface;
+    displayMode: string;
 }
 
 const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                                                                project,
                                                                user,
                                                                topic,
+                                                               displayMode, // Используем пропс
                                                            }) => {
     const [t] = useTranslation();
     const kanbans = topic.kanbans || [];
@@ -106,6 +143,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                     <div className="flex items-center flex-wrap gap-2">
                         {topic.allowedUsers.map((user) => (
                             <div
+                                key={user.id} // Добавил key
                                 className="flex items-center gap-2 cursor-pointer  bg-black text-white w-fit pr-6 pl-1 pt-1 pb-1 rounded-[15px]">
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarImage src={user.avatarUrl} alt={user.avatarUrl}/>
@@ -141,23 +179,28 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
             <Separator orientation="horizontal" className="mr-2 h-4"/>
             <div className="p-5 mt-[-20px]">
         <span className="text-2xl font-semibold flex items-center gap-3">
-          {t("Kanban")} - {topic.name}
+          {t(displayMode === 'kanban' ? "Kanban" : "List")} - {topic.name}
         </span>
                 <br/>
-                <div className="flex gap-5 overflow-auto max-w-[100vw]">
-                    {kanbans.length > 0 ? (
-                        kanbans.map((kanban) => (
-                            <ProjectDashboardTasks
-                                onKanbanNameChange={() => {
-                                }}
-                                key={kanban.name}
-                                kanban={kanban}
-                            />
-                        ))
-                    ) : (
-                        <p>{t("No Kanban boards found for this topic.")}</p>
-                    )}
-                </div>
+                {displayMode === 'kanban' ? (
+                    <div className="flex gap-5 overflow-auto max-w-[100vw]">
+                        {kanbans.length > 0 ? (
+                            kanbans.map((kanban) => (
+                                <ProjectDashboardTasks
+                                    onKanbanNameChange={() => {
+                                    }}
+                                    key={kanban.id} // Используем id канбана как key
+                                    kanban={kanban}
+                                />
+                            ))
+                        ) : (
+                            <p>{t("No Kanban boards found for this topic.")}</p>
+                        )}
+                    </div>
+                ) : (
+                    // Новый компонент для отображения задач в виде списка
+                    <ProjectListTasks kanbans={kanbans}/>
+                )}
                 <div className="items-center justify-center mt-[32px]">
                     <CreateKanbanDialog projectID={topic.id}/>
                 </div>
@@ -235,7 +278,8 @@ export const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({project
 
 const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                                                           project,
-                                                          user
+                                                          user,
+                                                          displayMode // Добавляем пропс
                                                       }) => {
     const [t] = useTranslation();
     const kanbans = project.kanbans || [];
@@ -253,6 +297,7 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                     <div className="flex items-center flex-wrap gap-2">
                         {project.allowedUsers.map((user) => (
                             <div
+                                key={user.id} // Добавил key
                                 className="flex items-center gap-2 cursor-pointer  bg-black text-white w-fit pr-6 pl-1 pt-1 pb-1 rounded-[15px]">
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarImage src={user.avatarUrl} alt={user.avatarUrl}/>
@@ -288,23 +333,28 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
             <Separator orientation="horizontal" className="mr-2 h-4"/>
             <div className="p-5 mt-[-20px]">
         <span className="text-2xl font-semibold flex items-center gap-3">
-          {t("Kanban")} - {project.name}
+          {t(displayMode === 'kanban' ? "Kanban" : "List")} - {project.name}
         </span>
                 <br/>
-                <div className="flex gap-5 overflow-auto max-w-[100vw]">
-                    {kanbans.length > 0 ? (
-                        kanbans.map((kanban) => (
-                            <ProjectDashboardTasks
-                                onKanbanNameChange={() => {
-                                }}
-                                key={kanban.name}
-                                kanban={kanban}
-                            />
-                        ))
-                    ) : (
-                        <p>{t("No Kanban boards found for this topic.")}</p>
-                    )}
-                </div>
+                {displayMode === 'kanban' ? (
+                    <div className="flex gap-5 overflow-auto max-w-[100vw]">
+                        {kanbans.length > 0 ? (
+                            kanbans.map((kanban) => (
+                                <ProjectDashboardTasks
+                                    onKanbanNameChange={() => {
+                                    }}
+                                    key={kanban.id} // Используем id канбана как key
+                                    kanban={kanban}
+                                />
+                            ))
+                        ) : (
+                            <p>{t("No Kanban boards found for this topic.")}</p>
+                        )}
+                    </div>
+                ) : (
+                    // Новый компонент для отображения задач в виде списка
+                    <ProjectListTasks kanbans={kanbans}/>
+                )}
                 <div className="items-center justify-center mt-[32px]">
                     <CreateKanbanDialog projectID={project.id}/>
                 </div>
@@ -552,6 +602,11 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
         topicName?: string;
     }>();
     const [t] = useTranslation();
+    const [displayMode, setDisplayMode] = useState<string>(localStorage.getItem("displayMode") || "kanban");
+
+    const handleDisplayModeChange = useCallback((mode: DisplayMode) => {
+        setDisplayMode(mode);
+    }, []);
 
     if (!projectName && !topicName) {
         return (
@@ -563,7 +618,10 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                     sharedProjects={sharedProjects}
                 />
                 <SidebarInset>
-                    <DashboardHeader/>
+                    <DashboardHeader
+                        displayMode={displayMode}
+                        onDisplayModeChange={handleDisplayModeChange}
+                    />
                     <NotFoundContent message={t("Please provide a valid project and topic in the URL.")}/>
                 </SidebarInset>
             </SidebarProvider>
@@ -619,7 +677,10 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                     sharedProjects={sharedProjects}
                 />
                 <SidebarInset>
-                    <DashboardHeader/>
+                    <DashboardHeader
+                        displayMode={displayMode}
+                        onDisplayModeChange={handleDisplayModeChange}
+                    />
                     <NotFoundContent message={t("Please check the URL or select a valid project.")}/>
                 </SidebarInset>
             </SidebarProvider>
@@ -636,30 +697,16 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                     sharedProjects={sharedProjects}
                 />
                 <SidebarInset>
-                    <header className="flex h-16 shrink-0 items-center gap-2">
-                        <div className="flex items-center gap-2 px-5">
-                            <SidebarTrigger className="-ml-1"/>
-                            <Separator orientation="vertical" className="mr-2 h-4"/>
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem className="md:block">
-                                        <BreadcrumbLink href="#">{t("Review")}</BreadcrumbLink>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator className="md:block"/>
-                                    <BreadcrumbItem>
-                                        <BreadcrumbPage>
-                                            {project.name}
-                                        </BreadcrumbPage>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                        </div>
-                    </header>
+                    <DashboardHeader
+                        currentProjectName={project.name}
+                        displayMode={displayMode}
+                        onDisplayModeChange={handleDisplayModeChange}
+                    />
                     <div
                         className="flex items-center justify-center w-full p-[20px]"
                         onClick={() => console.log("Клик по главному контейнеру")}
                     >
-                        <ProjectInfo user={user} project={project} topic={project}/>
+                        <ProjectInfo user={user} project={project} topic={project} displayMode={displayMode}/>
                     </div>
                 </SidebarInset>
             </SidebarProvider>
@@ -674,30 +721,17 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                     sharedProjects={sharedProjects}
                 />
                 <SidebarInset>
-                    <header className="flex h-16 shrink-0 items-center gap-2">
-                        <div className="flex items-center gap-2 px-5">
-                            <SidebarTrigger className="-ml-1"/>
-                            <Separator orientation="vertical" className="mr-2 h-4"/>
-                            <Breadcrumb>
-                                <BreadcrumbList>
-                                    <BreadcrumbItem className="md:block">
-                                        <BreadcrumbLink href="#">{t("Review")}</BreadcrumbLink>
-                                    </BreadcrumbItem>
-                                    <BreadcrumbSeparator className="md:block"/>
-                                    <BreadcrumbItem>
-                                        <BreadcrumbPage>
-                                            {project.name} / {topic.name}
-                                        </BreadcrumbPage>
-                                    </BreadcrumbItem>
-                                </BreadcrumbList>
-                            </Breadcrumb>
-                        </div>
-                    </header>
+                    <DashboardHeader
+                        currentProjectName={project.name}
+                        currentTopicName={topic.name}
+                        displayMode={displayMode}
+                        onDisplayModeChange={handleDisplayModeChange}
+                    />
                     <div
                         className="flex items-center justify-center w-full p-[20px]"
                         onClick={() => console.log("Клик по главному контейнеру")}
                     >
-                        <ProjectTopicInfo user={user} project={project} topic={topic}/>
+                        <ProjectTopicInfo user={user} project={project} topic={topic} displayMode={displayMode}/>
                     </div>
                 </SidebarInset>
             </SidebarProvider>
@@ -712,7 +746,10 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                     sharedProjects={sharedProjects}
                 />
                 <SidebarInset>
-                    <DashboardHeader/>
+                    <DashboardHeader
+                        displayMode={displayMode}
+                        onDisplayModeChange={handleDisplayModeChange}
+                    />
                     <NotFoundContent message={t("Please check the URL or select a valid project.")}/>
                 </SidebarInset>
             </SidebarProvider>

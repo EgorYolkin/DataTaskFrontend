@@ -277,6 +277,42 @@ function App() {
         checkAuthAndFetchUser();
     }, []);
 
+    useEffect(() => {
+        const initializeAppData = async () => {
+            setIsLoading(true);
+            let authenticated = false;
+            let currentUser = DefaultUser;
+
+            if (localStorage.getItem('accessToken')) {
+                try {
+                    currentUser = await fetchUser();
+                    setUser(currentUser);
+                    authenticated = true;
+                } catch (err) {
+                    toast('Auth error');
+                    localStorage.removeItem('accessToken');
+                }
+            }
+            setIsAuth(authenticated);
+
+            if (authenticated && currentUser.id !== DefaultUser.id) {
+                try {
+                    const [userProjects, userSharedProjects] = await Promise.all([
+                        getProjects(currentUser.id),
+                        getSharedProjects(currentUser.id)
+                    ]);
+                    setProjects(userProjects);
+                    setSharedProjects(userSharedProjects);
+                } catch (error) {
+                    toast('Failed to load projects');
+                }
+            }
+            setIsLoading(false);
+        };
+
+        initializeAppData();
+    }, []);
+
     const [projects, setProjects] = useState<ProjectInterface[]>([])
     const [sharedProjects, setSharedProjects] = useState<ProjectInterface[]>([])
 
@@ -359,7 +395,7 @@ function App() {
                     <Route
                         path="/project/:projectName/topic/:topicName"
                         element={
-                            <ProtectedRoute isAuth={isAuth}>
+                            <ProtectedRoute isAuth={localStorage.getItem("accessToken") == null}>
                                 <RouteTransition>
                                     <ProjectDashboard
                                         navMain={DefaultDashboardSidebarItems}
