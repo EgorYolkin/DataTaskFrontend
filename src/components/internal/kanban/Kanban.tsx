@@ -54,7 +54,7 @@ export const Kanban: React.FC<KanbanProps> = ({kanban, onKanbanNameChange}) => {
             if (task && task.trim()) {
                 await createTask({
                     title: task.trim(),
-                    description: "No description",
+                    description: "",
                     kanban_id: kanban.id,
                     is_completed: false,
                 })

@@ -1,3 +1,16 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&display=swap');
+
+:root {
+    --font-onest: "Onest", sans-serif;
+}
+
+* {
+    user-select: none;
+    font-family: var(--font-onest);
+    font-optical-sizing: auto;
+    font-style: normal;
+}
+
 .route-wrapper {
     position: relative;
     width: 100vw;

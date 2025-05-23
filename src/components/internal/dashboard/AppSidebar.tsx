@@ -34,6 +34,7 @@ const productVersion = import.meta.env.VITE_PRODUCT_VERSION;
 export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: AppSidebarProps) {
     const projectItems: ProjectNavItem[] = projects && projects.length > 0
         ? projects.map((project) => ({
+            id: project.id,
             title: project.name,
             url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}`,
             icon: Folder,
@@ -50,6 +51,7 @@ export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: 
 
     const sharedProjectItems: ProjectNavItem[] = sharedProjects && sharedProjects.length > 0
         ? sharedProjects.map((project) => ({
+            id: project.id,
             title: project.name,
             url: `/project/${project.name.toLowerCase().replace(/\s+/g, "-")}`,
             icon: Folder,

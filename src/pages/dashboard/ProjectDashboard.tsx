@@ -33,10 +33,11 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import {Input} from "@/components/ui/input.tsx";
-import {List, LayoutDashboard, UserPlus} from "lucide-react"; // Импортируем иконки для переключения
+import {List, LayoutDashboard, UserPlus, Trash} from "lucide-react";
 import {toast} from "sonner";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
 import {ProjectListTasks} from "@/components/internal/tasks/ProjectListTasks.tsx";
+import {Textarea} from "@/components/ui/textarea";
 
 interface ProjectDashboardProps {
     navMain: DashboardSidebarItemInterface[];
@@ -114,10 +115,135 @@ const DashboardHeader: React.FC<{
     );
 };
 
+// --- Компонент для inline редактирования ---
+interface EditableTextProps {
+    value: string;
+    onSave: (newValue: string) => Promise<void>;
+    className?: string;
+    isHeading?: boolean;
+    canEdit: boolean;
+    placeholder?: string;
+}
+
+const EditableText: React.FC<EditableTextProps> = ({value, onSave, className, isHeading, canEdit, placeholder}) => {
+    const [isEditing, setIsEditing] = useState(false);
+    const [currentValue, setCurrentValue] = useState(value);
+    const inputRef = React.useRef<HTMLInputElement | HTMLTextAreaElement>(null);
+
+    const handleSave = async () => {
+        if (currentValue.trim() !== value.trim()) {
+            try {
+                await onSave(currentValue.trim());
+                toast.success("Изменения сохранены!");
+            } catch (error) {
+                toast.error("Ошибка при сохранении изменений.");
+                setCurrentValue(value); // Откатываем изменения при ошибке
+            }
+        }
+        setIsEditing(false);
+    };
+
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+        if (event.key === 'Enter' && !event.shiftKey && !isHeading) {
+            inputRef.current?.blur();
+        }
+    };
+
+    const handleBlur = () => {
+        handleSave();
+    };
+
+    const handleClick = () => {
+        if (canEdit) {
+            setIsEditing(true);
+        }
+    };
+
+    React.useEffect(() => {
+        if (isEditing && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isEditing]);
+
+    return (
+        <div className={className} onClick={handleClick} style={{cursor: canEdit ? 'pointer' : 'default'}}>
+            {isEditing && canEdit ? (
+                isHeading ? (
+                    <Input
+                        ref={inputRef as React.RefObject<HTMLInputElement>}
+                        value={currentValue}
+                        onChange={(e) => setCurrentValue(e.target.value)}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        className="text-xl font-semibold"
+                        placeholder={placeholder}
+                    />
+                ) : (
+                    <Textarea
+                        ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+                        value={currentValue}
+                        onChange={(e) => setCurrentValue(e.target.value)}
+                        onBlur={handleBlur}
+                        onKeyDown={handleKeyDown}
+                        className="text-sm text-gray-700 w-full min-h-[100px]"
+                        rows={1}
+                        placeholder={placeholder}
+                    />
+                )
+            ) : (
+                isHeading ? (
+                    <span className="text-2xl font-semibold flex items-center gap-3">
+                        {value || placeholder}
+                    </span>
+                ) : (
+                    <span>{value || placeholder}</span>
+                )
+            )}
+        </div>
+    );
+};
+
+// --- Единая функция для обновления проекта или топика ---
+async function updateEntity(
+    entityID: number,
+    data: { name?: string; description?: string; },
+    t: (key: string) => string
+) {
+    const apiUrl = import.meta.env.VITE_API_URL;
+    const apiVersion = import.meta.env.VITE_API_VERSION;
+
+    const endpoint = `${apiUrl}/api/${apiVersion}/project/${entityID}`;
+
+    const response = await fetch(endpoint, {
+        method: "PUT",
+        credentials: 'include',
+        headers: {
+            "Authorization": localStorage.getItem("accessToken") || "",
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+        let errorData;
+        try {
+            errorData = await response.json();
+            toast.error(t(`Update project error`) + `: ${errorData.error || errorData.message}`);
+            throw new Error(errorData?.message || `Ошибка обновления project: ${response.status}`);
+        } catch (e) {
+            toast.error(t(`Update project error`) + `: ${response.status}`);
+            throw new Error(`Ошибка обновления project: ${response.status}`);
+        }
+    }
+    if (data.name) {
+        window.location.href = `/project/${data.name}`;
+    }
+}
+
 interface ProjectTopicInfoProps {
     project: ProjectInterface;
     user: UserInterface;
-    topic: ProjectInterface;
+    topic: ProjectInterface; // Assuming ProjectInterface is used for topics as well
     displayMode: string;
 }
 
@@ -125,25 +251,48 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                                                                project,
                                                                user,
                                                                topic,
-                                                               displayMode, // Используем пропс
+                                                               displayMode,
                                                            }) => {
     const [t] = useTranslation();
     const kanbans = topic.kanbans || [];
+
+    const isProjectOwner = project.owner_id === user.id; // Only project owner can edit topics
+
+    const handleTopicNameSave = useCallback(async (newName: string) => {
+        await updateEntity(topic.id, {name: newName}, t);
+    }, [topic.id, t]);
+
+    const handleTopicDescriptionSave = useCallback(async (newDescription: string) => {
+        await updateEntity(topic.id, {description: newDescription}, t);
+    }, [topic.id, t]);
+
 
     return (
         <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
             <div className="flex flex-col m-[20px] mb-0 gap-3">
                 <div>
-                    <span className="text-2xl font-semibold flex items-center gap-3">
-                      {topic.name} ({project.name})
-                    </span>
-                    <span>{project.description}</span>
+                    <EditableText
+                        value={topic.name}
+                        onSave={handleTopicNameSave}
+                        className="flex items-center gap-3"
+                        isHeading
+                        canEdit={isProjectOwner}
+                        placeholder={t("Enter topic name")}
+                    />
+                    <EditableText
+                        value={topic.description || ""}
+                        onSave={handleTopicDescriptionSave}
+                        className=""
+                        canEdit={isProjectOwner}
+                        placeholder={t("Enter topic description")}
+                    />
+                    <span className="text-sm text-gray-500">({project.name})</span> {/* Display project name statically */}
                 </div>
                 <div className="flex-col gap-10">
                     <div className="flex items-center flex-wrap gap-2">
                         {topic.allowedUsers.map((user) => (
                             <div
-                                key={user.id} // Добавил key
+                                key={user.id}
                                 className="flex items-center gap-2 cursor-pointer  bg-black text-white w-fit pr-6 pl-1 pt-1 pb-1 rounded-[15px]">
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarImage src={user.avatarUrl} alt={user.avatarUrl}/>
@@ -189,7 +338,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                                 <ProjectDashboardTasks
                                     onKanbanNameChange={() => {
                                     }}
-                                    key={kanban.id} // Используем id канбана как key
+                                    key={kanban.id}
                                     kanban={kanban}
                                 />
                             ))
@@ -198,7 +347,6 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                         )}
                     </div>
                 ) : (
-                    // Новый компонент для отображения задач в виде списка
                     <ProjectListTasks kanbans={kanbans}/>
                 )}
                 <div className="items-center justify-center mt-[32px]">
@@ -246,7 +394,7 @@ export const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({project
     return (
         <Dialog>
             <DialogTrigger asChild>
-                <span>{t('Delete project')}</span>
+                <Trash className="cursor-pointer w-4 h-4"></Trash>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
                 <DialogHeader>
@@ -279,25 +427,46 @@ export const DeleteProjectDialog: React.FC<DeleteProjectDialogProps> = ({project
 const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                                                           project,
                                                           user,
-                                                          displayMode // Добавляем пропс
+                                                          displayMode
                                                       }) => {
     const [t] = useTranslation();
     const kanbans = project.kanbans || [];
+
+    const isProjectOwner = project.owner_id === user.id;
+
+    const handleProjectNameSave = useCallback(async (newName: string) => {
+        await updateEntity(project.id, {name: newName}, t);
+    }, [project.id, t]);
+
+    const handleProjectDescriptionSave = useCallback(async (newDescription: string) => {
+        await updateEntity(project.id, {description: newDescription}, t);
+    }, [project.id, t]);
 
     return (
         <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
             <div className="flex flex-col m-[20px] mb-0 gap-3">
                 <div>
-                    <span className="text-2xl font-semibold flex items-center gap-3">
-                      {project.name}
-                    </span>
-                    <span>{project.description}</span>
+                    <EditableText
+                        value={project.name}
+                        onSave={handleProjectNameSave}
+                        className="text-2xl font-semibold flex items-center gap-3"
+                        isHeading
+                        canEdit={isProjectOwner}
+                        placeholder={t("Enter project name")}
+                    />
+                    <EditableText
+                        value={project.description || ""}
+                        onSave={handleProjectDescriptionSave}
+                        className=""
+                        canEdit={isProjectOwner}
+                        placeholder={t("Enter project description")}
+                    />
                 </div>
                 <div className="flex-col gap-10">
                     <div className="flex items-center flex-wrap gap-2">
                         {project.allowedUsers.map((user) => (
                             <div
-                                key={user.id} // Добавил key
+                                key={user.id}
                                 className="flex items-center gap-2 cursor-pointer  bg-black text-white w-fit pr-6 pl-1 pt-1 pb-1 rounded-[15px]">
                                 <Avatar className="h-8 w-8 rounded-lg">
                                     <AvatarImage src={user.avatarUrl} alt={user.avatarUrl}/>
@@ -343,7 +512,7 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                                 <ProjectDashboardTasks
                                     onKanbanNameChange={() => {
                                     }}
-                                    key={kanban.id} // Используем id канбана как key
+                                    key={kanban.id}
                                     kanban={kanban}
                                 />
                             ))
@@ -352,7 +521,6 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                         )}
                     </div>
                 ) : (
-                    // Новый компонент для отображения задач в виде списка
                     <ProjectListTasks kanbans={kanbans}/>
                 )}
                 <div className="items-center justify-center mt-[32px]">
