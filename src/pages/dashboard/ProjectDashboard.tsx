@@ -36,8 +36,9 @@ import {Input} from "@/components/ui/input.tsx";
 import {List, LayoutDashboard, UserPlus, Trash} from "lucide-react";
 import {toast} from "sonner";
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
-import {ProjectListTasks} from "@/components/internal/tasks/ProjectListTasks.tsx";
+import {TasksList} from "@/components/internal/list/TasksList.tsx";
 import {Textarea} from "@/components/ui/textarea";
+import {TaskInterface} from "@/interfaces/TasksInterfase.tsx";
 
 interface ProjectDashboardProps {
     navMain: DashboardSidebarItemInterface[];
@@ -254,7 +255,21 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                                                                displayMode,
                                                            }) => {
     const [t] = useTranslation();
-    const kanbans = topic.kanbans || [];
+    const [kanbans, setKanbans] = useState(project.kanbans || []);
+
+    const onTaskAdded = (newTask: TaskInterface, kanbanId: string | number): void => {
+        setKanbans(prevKanbans =>
+            prevKanbans.map(kanban => {
+                if (kanban.id === kanbanId) {
+                    return {
+                        ...kanban,
+                        tasks: [...(kanban.tasks || []), newTask],
+                    };
+                }
+                return kanban;
+            })
+        );
+    };
 
     const isProjectOwner = project.owner_id === user.id; // Only project owner can edit topics
 
@@ -350,7 +365,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                     <div className="flex gap-5 overflow-auto max-w-[100vw]">
                         {kanbans.length > 0 ? (
                             kanbans.map((kanban) => (
-                                <ProjectListTasks kanban={kanban}/>
+                                <TasksList onTaskAdded={onTaskAdded} kanban={kanban}/>
                             ))
                         ) : (
                             <p>{t("No Kanban boards found for this topic.")}</p>
@@ -438,7 +453,22 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                                                           displayMode
                                                       }) => {
     const [t] = useTranslation();
-    const kanbans = project.kanbans || [];
+
+    const [kanbans, setKanbans] = useState(project.kanbans || []);
+
+    const onTaskAdded = (newTask: TaskInterface, kanbanId: string | number): void => {
+        setKanbans(prevKanbans =>
+            prevKanbans.map(kanban => {
+                if (kanban.id === kanbanId) {
+                    return {
+                        ...kanban,
+                        tasks: [...(kanban.tasks || []), newTask],
+                    };
+                }
+                return kanban;
+            })
+        );
+    };
 
     const isProjectOwner = project.owner_id === user.id;
 
@@ -518,13 +548,15 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                         )}
                     </div>
                 ) : (
-                    <div className="flex flex-col gap-5 overflow-auto ">
+                    <div className="flex flex-col overflow-auto ">
                         {kanbans.length > 0 ? (
                             kanbans.map((kanban) => (
-                                <div className="flex flex-col gap-5">
-                                    <ProjectListTasks kanban={kanban}/>
-                                    <Separator/>
-                                </div>
+                                <>
+                                    <div>
+                                        <TasksList onTaskAdded={onTaskAdded} kanban={kanban}/>
+                                    </div>
+                                    <Separator className="mt-8 mb-3"/>
+                                </>
                             ))
                         ) : (
                             <p>{t("No Lists found for this topic.")}</p>
