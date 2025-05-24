@@ -347,7 +347,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
         </span>
                 <br/>
                 {displayMode === 'kanban' ? (
-                    <div className="flex gap-5 overflow-auto max-w-[100vw]">
+                    <div className="flex gap-5 overflow-auto ">
                         {kanbans.length > 0 ? (
                             kanbans.map((kanban) => (
                                 <ProjectDashboardTasks
@@ -362,13 +362,18 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                         )}
                     </div>
                 ) : (
-                    <div className="flex gap-5 overflow-auto max-w-[100vw]">
+                    <div className="flex flex-col overflow-auto ">
                         {kanbans.length > 0 ? (
                             kanbans.map((kanban) => (
-                                <TasksList onTaskAdded={onTaskAdded} kanban={kanban}/>
+                                <>
+                                    <div>
+                                        <TasksList onTaskAdded={onTaskAdded} kanban={kanban}/>
+                                    </div>
+                                    <Separator className="mt-8 mb-3"/>
+                                </>
                             ))
                         ) : (
-                            <p>{t("No Kanban boards found for this topic.")}</p>
+                            <p>{t("No Lists found for this topic.")}</p>
                         )}
                     </div>
                 )}
