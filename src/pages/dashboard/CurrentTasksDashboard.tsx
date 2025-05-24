@@ -65,7 +65,7 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
                 const userTasks: FetchResponse = await fetchUserTasks(user.id);
                 setTasks(userTasks.data);
             } catch (error) {
-                console.error("Error loading tasks:", error);
+                console.error("Err or loading tasks:", error);
             }
         };
 

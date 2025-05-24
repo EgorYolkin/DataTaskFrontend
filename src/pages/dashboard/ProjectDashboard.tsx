@@ -268,7 +268,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
 
 
     return (
-        <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
+        <div className="flex flex-col p-4 gap-5 w-[100%] border-1 rounded-xl">
             <div className="flex flex-col m-[20px] mb-0 gap-3">
                 <div>
                     <EditableText
@@ -347,7 +347,15 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                         )}
                     </div>
                 ) : (
-                    <ProjectListTasks kanbans={kanbans}/>
+                    <div className="flex gap-5 overflow-auto max-w-[100vw]">
+                        {kanbans.length > 0 ? (
+                            kanbans.map((kanban) => (
+                                <ProjectListTasks kanban={kanban}/>
+                            ))
+                        ) : (
+                            <p>{t("No Kanban boards found for this topic.")}</p>
+                        )}
+                    </div>
                 )}
                 <div className="items-center justify-center mt-[32px]">
                     <CreateKanbanDialog projectID={topic.id}/>
@@ -443,7 +451,7 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
     }, [project.id, t]);
 
     return (
-        <div className="flex flex-col xl:p-4 gap-5 w-[100%] xl:w-[60%] border-1 rounded-xl">
+        <div className="flex flex-col gap-5 border-1 rounded-xl w-[100%]">
             <div className="flex flex-col m-[20px] mb-0 gap-3">
                 <div>
                     <EditableText
@@ -485,28 +493,17 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                                 </AvatarFallback>
                             </Avatar>
                         </div>
-                        {project.owner_id == user.id && (
-                            <div
-                                className="flex items-center gap-2 cursor-pointer  bg-red-500 text-white  pr-1 pl-1 pt-1 pb-1 rounded-[15px]">
-                                <Avatar className="h-8 w-[130px] rounded-lg">
-                                    <AvatarFallback
-                                        className="rounded-lg bg-red-500">
-                                        <DeleteProjectDialog projectID={project.id}></DeleteProjectDialog>
-                                    </AvatarFallback>
-                                </Avatar>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
             <Separator orientation="horizontal" className="mr-2 h-4"/>
-            <div className="p-5 mt-[-20px]">
-        <span className="text-2xl font-semibold flex items-center gap-3">
-          {t(displayMode === 'kanban' ? "Kanban" : "List")} - {project.name}
-        </span>
+            <div className="p-5 mt-[-20px] ">
+                <span className="text-2xl font-semibold flex items-center gap-3">
+                  {t(displayMode === 'kanban' ? "Kanban" : "List")} - {project.name}
+                </span>
                 <br/>
                 {displayMode === 'kanban' ? (
-                    <div className="flex gap-5 overflow-auto max-w-[100vw]">
+                    <div className="flex gap-5 overflow-auto ">
                         {kanbans.length > 0 ? (
                             kanbans.map((kanban) => (
                                 <ProjectDashboardTasks
@@ -521,7 +518,18 @@ const ProjectInfo: React.FC<ProjectTopicInfoProps> = ({
                         )}
                     </div>
                 ) : (
-                    <ProjectListTasks kanbans={kanbans}/>
+                    <div className="flex flex-col gap-5 overflow-auto ">
+                        {kanbans.length > 0 ? (
+                            kanbans.map((kanban) => (
+                                <div className="flex flex-col gap-5">
+                                    <ProjectListTasks kanban={kanban}/>
+                                    <Separator/>
+                                </div>
+                            ))
+                        ) : (
+                            <p>{t("No Lists found for this topic.")}</p>
+                        )}
+                    </div>
                 )}
                 <div className="items-center justify-center mt-[32px]">
                     <CreateKanbanDialog projectID={project.id}/>
@@ -600,7 +608,7 @@ export const CreateKanbanDialog: React.FC<CreateKanbanDialogProps> = ({
         <Dialog>
             <DialogTrigger asChild>
                 <div className="bg-black text-white w-fit pr-3 pl-3 pt-1 pb-1 rounded-sm cursor-pointer">
-                    {t("Create kanban")}
+                    {t("Create kanban") + " / " + t("list")}
                 </div>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
@@ -863,16 +871,16 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                     user={user}
                     projects={projects}
                     sharedProjects={sharedProjects}
+                    className="w-[20%]"
                 />
-                <SidebarInset>
+                <SidebarInset className="w-[80%]">
                     <DashboardHeader
                         currentProjectName={project.name}
                         displayMode={displayMode}
                         onDisplayModeChange={handleDisplayModeChange}
                     />
                     <div
-                        className="flex items-center justify-center w-full p-[20px]"
-                        onClick={() => console.log("Клик по главному контейнеру")}
+                        className="flex items-center justify-center p-[20px] max-w-[100%]"
                     >
                         <ProjectInfo user={user} project={project} topic={project} displayMode={displayMode}/>
                     </div>

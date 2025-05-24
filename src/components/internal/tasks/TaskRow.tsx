@@ -1,11 +1,11 @@
 // TaskRow.tsx
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { TaskInterface } from "@/interfaces/TasksInterfase.tsx";
-import { CheckStatus } from "@/components/internal/tasks/components/CheckStatus.tsx";
-import { TaskDialog } from "@/components/internal/dialogs/TaskDialog.tsx";
-import { useTranslation } from "react-i18next";
+import React, {useState, useEffect} from "react";
+import {TaskInterface} from "@/interfaces/TasksInterfase.tsx";
+import {CheckStatus} from "@/components/internal/tasks/components/CheckStatus.tsx";
+import {TaskDialog} from "@/components/internal/dialogs/TaskDialog.tsx";
+import {useTranslation} from "react-i18next";
 
 // --- API functions (remain unchanged) ---
 async function updateTask(taskData: any, taskID: number) {
@@ -67,6 +67,7 @@ async function deleteTask(taskID: number) {
     const responseData = await response.json();
     return responseData;
 }
+
 // --- End API functions ---
 
 interface TaskRowProps {
@@ -163,43 +164,52 @@ export const TaskRow: React.FC<TaskRowProps> = ({task, columnVisibility}) => {
             {/* Main clickable content area (title, description, users) */}
             <div onClick={() => setIsModalOpen(true)} className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-1 sm:gap-5 w-full">
                 {/* Container for title and description */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-5 w-full sm:w-auto sm:flex-grow">
+                {/* Добавляем sm:min-w-0 и sm:flex-grow для правильного распределения пространства на десктопе */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-1 sm:gap-5 w-full sm:w-auto sm:flex-grow sm:min-w-0">
                     {columnVisibility.title && (
-                        <div className="font-semibold text-sm flex-shrink-0">
-                            {task.title}
+                        <div className="font-semibold text-sm"> {/* Убираем flex-shrink-0 отсюда */}
+                            {/* Применяем min-w-0 и break-words напрямую к контейнеру текста */}
+                            <div className="min-w-0 break-words">
+                                {task.title}
+                            </div>
                         </div>
                     )}
                     {columnVisibility.description && task.description && (
                         <div className="text-gray-600 text-sm flex-grow">
-                            {shouldShowExpandLink ? (
-                                <>
-                                    {task.description.slice(0, DESCRIPTION_PREVIEW_LENGTH)}...
-                                    <span
-                                        className="text-blue-500 hover:underline text-xs ml-1"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            setIsModalOpen(true);
-                                        }}
-                                    >
-                                        {t("Развернуть")}
-                                    </span>
-                                </>
-                            ) : (
-                                task.description
-                            )}
+                            {/* Применяем min-w-0 и break-words напрямую к контейнеру текста */}
+                            <div className="min-w-0 break-words">
+                                {shouldShowExpandLink ? (
+                                    <>
+                                        {task.description.slice(0, DESCRIPTION_PREVIEW_LENGTH)}...
+                                        <span
+                                            className="text-blue-500 hover:underline text-xs ml-1"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setIsModalOpen(true);
+                                            }}
+                                        >
+                                    {t("Развернуть")}
+                                </span>
+                                    </>
+                                ) : (
+                                    task.description
+                                )}
+                            </div>
                         </div>
                     )}
                 </div>
 
-                {/* Users column */}
+
                 {columnVisibility.users && (
-                    <div className="text-sm text-gray-500 flex-shrink-0 w-full sm:w-fit mt-2 sm:mt-0">
-                        {task.users?.map((user) => user.name).join(", ") || ""}
+                    <div className="text-sm text-gray-500 flex-shrink-0 w-full sm:w-fit sm:min-w-0 sm:self-center mt-2 sm:mt-0">
+                        <div className="min-w-0 break-words">
+                            {task.users?.map((user) => user.name).join(", ") || ""}
+                        </div>
                     </div>
                 )}
             </div>
 
-            {/* TaskDialog (remains unchanged) */}
+
             <TaskDialog
                 isOpen={isModalOpen}
                 onOpenChange={setIsModalOpen}

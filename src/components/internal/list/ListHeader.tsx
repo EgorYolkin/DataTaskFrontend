@@ -88,12 +88,12 @@ export const DeleteKanbanDialog: React.FC<DeleteKanbanDialogProps> = ({kanbanID,
     )
 }
 
-interface KanbanHeaderProps {
+interface ListHeaderProps {
     kanban: KanbanInterface
     onKanbanNameChange: (kanban: KanbanInterface, newName: string) => void
 }
 
-export const KanbanHeader: React.FC<KanbanHeaderProps> = ({kanban, onKanbanNameChange}) => {
+export const ListHeader: React.FC<ListHeaderProps> = ({kanban, onKanbanNameChange}) => {
     const [isEditing, setIsEditing] = React.useState(false)
     const [editingName, setEditingName] = React.useState(kanban.name)
 
@@ -146,7 +146,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({kanban, onKanbanNameC
     }
 
     return (
-        <div className="flex text-[20px] items-center justify-between cursor-pointer p-2">
+        <div className="flex items-center text-[20px] justify-between cursor-pointer p-2">
             <div
                 className="cursor-pointer font-bold hover:opacity-80"
                 onClick={startEditing}
@@ -154,7 +154,7 @@ export const KanbanHeader: React.FC<KanbanHeaderProps> = ({kanban, onKanbanNameC
                 {editingName || kanban?.name || "Backlog"}
             </div>
             {kanban?.id && (
-                <DeleteKanbanDialog deleteKanban={deleteKanban} kanbanID={kanban.id} />
+                <DeleteKanbanDialog deleteKanban={deleteKanban} kanbanID={kanban.id}/>
             )}
         </div>
     )

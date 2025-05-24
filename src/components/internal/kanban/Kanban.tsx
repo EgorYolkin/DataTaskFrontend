@@ -66,7 +66,6 @@ export const Kanban: React.FC<KanbanProps> = ({kanban, onKanbanNameChange}) => {
         }
     }, [task, kanban.id])
 
-    // Sorting and filtering logic
     const sortedAndFilteredTasks = React.useMemo(() => {
         let tasks = [...(kanban.tasks || [])]
 
@@ -77,7 +76,6 @@ export const Kanban: React.FC<KanbanProps> = ({kanban, onKanbanNameChange}) => {
             )
         }
 
-        // Apply sorting
         if (sortField) {
             tasks.sort((a, b) => {
                 let comparison = 0
@@ -109,7 +107,7 @@ export const Kanban: React.FC<KanbanProps> = ({kanban, onKanbanNameChange}) => {
                 onKanbanNameChange={onKanbanNameChange}
             />
 
-            <Separator className="mt-3 mb-3" />
+            <Separator className="mt-3 mb-3"/>
 
             <div className="my-2">
                 <Input
@@ -134,7 +132,7 @@ export const Kanban: React.FC<KanbanProps> = ({kanban, onKanbanNameChange}) => {
                 </div>
             </div>
 
-            <Separator className="mt-3 mb-3" />
+            <Separator className="mt-3 mb-3"/>
 
             <div className="flex flex-col gap-2">
                 {sortedAndFilteredTasks.length ? (
@@ -143,7 +141,7 @@ export const Kanban: React.FC<KanbanProps> = ({kanban, onKanbanNameChange}) => {
                             key={task.id}
                             className="cursor-pointer hover:bg-gray-100 rounded-xl p-2 bg-gray-100"
                         >
-                            <KanbanTask task={task} />
+                            <KanbanTask task={task}/>
                         </div>
                     ))
                 ) : (
@@ -151,7 +149,7 @@ export const Kanban: React.FC<KanbanProps> = ({kanban, onKanbanNameChange}) => {
                 )}
             </div>
 
-            <Separator className="mt-3 mb-3" />
+            <Separator className="mt-3 mb-3"/>
 
             <div className="mt-2">
                 <Input

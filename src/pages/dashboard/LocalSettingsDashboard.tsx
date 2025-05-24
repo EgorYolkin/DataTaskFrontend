@@ -69,7 +69,7 @@ export const LocalSettingsDashboard: React.FC<LocalSettingsDashboardProps> = ({n
                     </div>
                 </header>
                 <div className="flex items-center justify-center w-full p-[20px]">
-                    <div className="flex flex-col p-4 gap-5  w-[100%] xl:w-[60%] border-1 rounded-xl">
+                    <div className="flex flex-col p-4 gap-5  w-[100%] border-1 rounded-xl">
                         <span className="text-2xl font-semibold">{t('Dashboard settings')}</span>
                         <div className="max-w-[200px]">
                             <ChangeLanguageCombobox/>
