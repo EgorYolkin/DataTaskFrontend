@@ -255,7 +255,8 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                                                                displayMode,
                                                            }) => {
     const [t] = useTranslation();
-    const [kanbans, setKanbans] = useState(project.kanbans || []);
+
+    const [kanbans, setKanbans] = useState(topic.kanbans || []);
 
     const onTaskAdded = (newTask: TaskInterface, kanbanId: string | number): void => {
         setKanbans(prevKanbans =>
@@ -283,7 +284,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
 
 
     return (
-        <div className="flex flex-col p-4 gap-5 w-[100%] border-1 rounded-xl">
+        <div className="flex flex-col gap-5 w-[100%] border-1 rounded-xl">
             <div className="flex flex-col m-[20px] mb-0 gap-3">
                 <div>
                     <EditableText
@@ -347,7 +348,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
         </span>
                 <br/>
                 {displayMode === 'kanban' ? (
-                    <div className="flex gap-5 overflow-auto ">
+                    <div className="flex gap-5 overflow-auto max-w-[100vw]">
                         {kanbans.length > 0 ? (
                             kanbans.map((kanban) => (
                                 <ProjectDashboardTasks
@@ -377,6 +378,7 @@ const ProjectTopicInfo: React.FC<ProjectTopicInfoProps> = ({
                         )}
                     </div>
                 )}
+
                 <div className="items-center justify-center mt-[32px]">
                     <CreateKanbanDialog projectID={topic.id}/>
                 </div>

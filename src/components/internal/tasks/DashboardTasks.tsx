@@ -93,7 +93,7 @@ export function DashboardTasks({tasks, user}: { tasks: TaskInterface[], user: Us
     };
 
     return (
-        <div className="w-full p-4">
+        <div className="w-full">
 
             <span className="text-2xl font-semibold">
                 {t(greeting)}, {user.name}
