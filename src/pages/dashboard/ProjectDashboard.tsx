@@ -910,9 +910,8 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                     user={user}
                     projects={projects}
                     sharedProjects={sharedProjects}
-                    className="w-[20%]"
                 />
-                <SidebarInset className="w-[80%]">
+                <SidebarInset>
                     <DashboardHeader
                         currentProjectName={project.name}
                         displayMode={displayMode}

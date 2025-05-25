@@ -45,7 +45,7 @@ function formatTaskDuration(timestamps: TaskTimestamps, t: (tr: string) => strin
     }
 
     const days = differenceInDays(updatedAt, createdAt);
-    return `З${t('Task complete for')} ${days} ${t('days')}.`;
+    return `${t('Task complete for')} ${days} ${t('days')}.`;
 }
 
 interface DeleteTaskDialogProps {
