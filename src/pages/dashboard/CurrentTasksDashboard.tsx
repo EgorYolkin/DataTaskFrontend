@@ -22,6 +22,7 @@ import {DashboardTasks} from "@/components/internal/tasks/DashboardTasks.tsx";
 import {TaskInterface} from "@/interfaces/TasksInterfase.tsx";
 import {FetchResponse} from "@/interfaces/FetchResponse.tsx";
 import {Link} from "react-router-dom";
+import {NotificationInterface} from "@/interfaces/NotificationInterface.tsx";
 
 async function fetchUserTasks(userId: number): Promise<FetchResponse> {
     const apiUrl = import.meta.env.VITE_API_URL;
@@ -45,6 +46,7 @@ async function fetchUserTasks(userId: number): Promise<FetchResponse> {
 
 interface CurrentTasksDashboardProps {
     navMain: DashboardSidebarItemInterface[];
+    notifications: NotificationInterface[];
     projects: ProjectInterface[];
     sharedProjects: ProjectInterface[];
     user: UserInterface;
@@ -52,6 +54,7 @@ interface CurrentTasksDashboardProps {
 
 export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
                                                                                 navMain,
+                                                                                notifications,
                                                                                 projects,
                                                                                 sharedProjects,
                                                                                 user
@@ -74,7 +77,7 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
 
     return (
         <SidebarProvider>
-            <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
+            <AppSidebar notifications={notifications} navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2">
                     <div className="flex items-center gap-2 px-5">
@@ -100,7 +103,9 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
                         <div className="flex flex-col justify-center gap-2">
                             <DashboardTasks user={user} tasks={tasks}/>
                             <div className="flex-col m-4 mt-0">
-                                <Separator orientation="horizontal" className="mr-2 h-4 mb-6"/>
+                                {projects.length > 0 && (
+                                    <Separator orientation="horizontal" className="mr-2 h-4 mb-6"/>
+                                )}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-3">
                                     {projects.length > 0 && (
                                         projects.reverse().map((project) => (
@@ -132,11 +137,6 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
 
                                     )}
                                 </div>
-                                {projects.length <= 0 && (
-                                    <div className="text-center py-8 text-gray-500">
-                                        {t("No projects found")}
-                                    </div>
-                                )}
                             </div>
                             {sharedProjects.length > 0 && (
                                 <div className="flex-col m-4 mt-0">
@@ -173,11 +173,6 @@ export const CurrentTasksDashboard: React.FC<CurrentTasksDashboardProps> = ({
 
                                         )}
                                     </div>
-                                    {projects.length <= 0 && (
-                                        <div className="text-center py-8 text-gray-500">
-                                            {t("No projects found")}
-                                        </div>
-                                    )}
                                 </div>
                             )}
                         </div>

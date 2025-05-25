@@ -9,7 +9,6 @@ import {LocalSettingsDashboard} from "@/pages/dashboard/LocalSettingsDashboard.t
 import {Navigate} from "react-router-dom"
 import {ProjectInterface} from "@/interfaces/ProjectInterface.tsx"
 import {DefaultUser, UserInterface} from "@/interfaces/UserInterface.tsx"
-import {DefaultDashboardSidebarItems} from "@/interfaces/DashboardSidebarInterface.tsx"
 import {CreateProjectDashboard} from "@/pages/dashboard/CreateProjectDashboard.tsx"
 import React, {useState, useEffect} from 'react'
 import {KanbanInterface, TaskInterface} from "@/interfaces/TasksInterfase.tsx"
@@ -18,6 +17,11 @@ import {AcceptInvitationDashboard} from "@/pages/dashboard/AcceptInvitationDashb
 import {Toaster} from "@/components/ui/sonner"
 import {ProjectDashboard} from "@/pages/dashboard/ProjectDashboard.tsx";
 import {toast} from "sonner";
+import {NotificationsDashboard} from "@/pages/dashboard/NotificationsDashboard.tsx";
+import {NotificationInterface} from "@/interfaces/NotificationInterface.tsx";
+import {Bell, CheckIcon, PlusIcon, Settings2} from "lucide-react";
+import {DashboardSidebarItemInterface} from "@/interfaces/DashboardSidebarInterface.tsx";
+import {useTranslation} from "react-i18next";
 
 export function ProtectedRoute({isAuth, children}: { isAuth: boolean; children: React.ReactNode }) {
     if (!isAuth) {
@@ -82,6 +86,30 @@ const fetchTopicUsers = async (topicId: number): Promise<UserInterface[]> => {
         console.warn(`Failed to fetch users for topic ${topicId}`)
         return []
     }
+}
+
+const processNotification = async (notification: any): Promise<NotificationInterface> => {
+    return {
+        id: notification.id,
+        owner_id: notification.owner_id,
+        title: notification.title,
+        description: notification.description,
+        is_read: notification.is_read,
+        created_at: notification.created_at,
+    };
+};
+
+async function getNotifications(): Promise<NotificationInterface[]> {
+    const response: FetchResponse = await fetchWithErrorHandling(
+        `${apiUrl}/api/${apiVersion}/notification/`
+    )
+    const notificationsRaw = Array.isArray(response.data)
+        ? response.data
+        : response.data
+            ? [response.data]
+            : [];
+
+    return Promise.all(notificationsRaw.map(processNotification));
 }
 
 const processTopic = async (topic: any): Promise<any> => {
@@ -254,6 +282,30 @@ function App() {
     const [user, setUser] = useState<UserInterface>(DefaultUser);
     const [isLoading, setIsLoading] = useState(true);
 
+    const [DefaultDashboardSidebarItems, setDefaultDashboardSidebarItems] = useState<DashboardSidebarItemInterface[]>([
+        {
+            title: "Current tasks",
+            url: "/",
+            icon: CheckIcon,
+            isActive: true,
+        },
+        {
+            title: "Settings",
+            url: "/dashboard/settings",
+            icon: Settings2,
+            isActive: false,
+        },
+        {
+            title: "Create project",
+            url: "/project/create",
+            icon: PlusIcon,
+            isActive: false,
+        },
+    ])
+
+    const DefaultDashboardSidebarItemsAmount = DefaultDashboardSidebarItems.length
+
+
     useEffect(() => {
         const checkAuthAndFetchUser = async () => {
             setIsLoading(true);
@@ -314,7 +366,9 @@ function App() {
     }, []);
 
     const [projects, setProjects] = useState<ProjectInterface[]>([])
+    const [notifications, setNotifications] = useState<NotificationInterface[]>([])
     const [sharedProjects, setSharedProjects] = useState<ProjectInterface[]>([])
+    const [t] = useTranslation();
 
     useEffect(() => {
         const fetchProjects = async () => {
@@ -324,6 +378,16 @@ function App() {
                 console.log("pr", projects)
             } catch (error) {
                 toast('Get projects error')
+            }
+        }
+
+        const fetchNotifications = async () => {
+            try {
+                const data = await getNotifications()
+                setNotifications(data)
+                console.log("nt", notifications)
+            } catch (error) {
+                toast('Get notifications error')
             }
         }
 
@@ -338,12 +402,25 @@ function App() {
         }
 
         const fetchData = async () => {
-            await Promise.all([fetchProjects(), fetchSharedProjects()])
+            await Promise.all([fetchProjects(), fetchSharedProjects(), fetchNotifications()])
             setIsLoading(false)
         }
 
         fetchData()
     }, [user.id])
+
+    useEffect(() => {
+        if ((DefaultDashboardSidebarItems.length < DefaultDashboardSidebarItemsAmount + 1) && notifications.length > 0) {
+            let notificationsBar: DashboardSidebarItemInterface = {
+                title: t("Notifications") + ` (${notifications.filter(n => !n.is_read).length})`,
+                url: "/notifications",
+                icon: Bell,
+                isActive: false,
+            }
+
+            setDefaultDashboardSidebarItems([...DefaultDashboardSidebarItems, notificationsBar])
+        }
+    }, [notifications]);
 
     return (
         <Router>
@@ -369,6 +446,7 @@ function App() {
                                 <RouteTransition>
                                     <CurrentTasksDashboard
                                         navMain={DefaultDashboardSidebarItems}
+                                        notifications={notifications}
                                         projects={projects}
                                         sharedProjects={sharedProjects}
                                         user={user}
@@ -384,6 +462,7 @@ function App() {
                                 <RouteTransition>
                                     <AcceptInvitationDashboard
                                         navMain={DefaultDashboardSidebarItems}
+                                        notifications={notifications}
                                         projects={projects}
                                         sharedProjects={sharedProjects}
                                         user={user}
@@ -399,6 +478,7 @@ function App() {
                                 <RouteTransition>
                                     <ProjectDashboard
                                         navMain={DefaultDashboardSidebarItems}
+                                        notifications={notifications}
                                         projects={projects}
                                         sharedProjects={sharedProjects}
                                         user={user}
@@ -414,6 +494,7 @@ function App() {
                                 <RouteTransition>
                                     <ProjectDashboard
                                         navMain={DefaultDashboardSidebarItems}
+                                        notifications={notifications}
                                         projects={projects}
                                         sharedProjects={sharedProjects}
                                         user={user}
@@ -429,6 +510,7 @@ function App() {
                                 <RouteTransition>
                                     <CreateProjectDashboard
                                         navMain={DefaultDashboardSidebarItems}
+                                        notifications={notifications}
                                         projects={projects}
                                         sharedProjects={sharedProjects}
                                         user={user}
@@ -444,6 +526,7 @@ function App() {
                                 <RouteTransition>
                                     <ProjectDashboard
                                         navMain={DefaultDashboardSidebarItems}
+                                        notifications={notifications}
                                         projects={projects}
                                         sharedProjects={sharedProjects}
                                         user={user}
@@ -459,6 +542,23 @@ function App() {
                                 <RouteTransition>
                                     <LocalSettingsDashboard
                                         navMain={DefaultDashboardSidebarItems}
+                                        notifications={notifications}
+                                        projects={projects}
+                                        sharedProjects={sharedProjects}
+                                        user={user}
+                                    />
+                                </RouteTransition>
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/notifications"
+                        element={
+                            <ProtectedRoute isAuth={isAuth}>
+                                <RouteTransition>
+                                    <NotificationsDashboard
+                                        navMain={DefaultDashboardSidebarItems}
+                                        notifications={notifications}
                                         projects={projects}
                                         sharedProjects={sharedProjects}
                                         user={user}

@@ -21,9 +21,11 @@ import {UserInterface} from "@/interfaces/UserInterface.tsx";
 import {Folder} from "lucide-react";
 import {NavSharedProjects} from "@/components/internal/dashboard/NavSharedProjects.tsx";
 import {Link} from "react-router-dom";
+import {NotificationInterface} from "@/interfaces/NotificationInterface.tsx";
 
 interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
     navMain: DashboardSidebarItemInterface[];
+    notifications: NotificationInterface[];
     projects: ProjectInterface[];
     sharedProjects: ProjectInterface[];
     user: UserInterface;
@@ -31,7 +33,7 @@ interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
 
 const productVersion = import.meta.env.VITE_PRODUCT_VERSION;
 
-export function AppSidebar({navMain, projects, sharedProjects, user, ...props}: AppSidebarProps) {
+export function AppSidebar({navMain, notifications, projects, sharedProjects, user, ...props}: AppSidebarProps) {
     const projectItems: ProjectNavItem[] = projects && projects.length > 0
         ? projects.map((project) => ({
             id: project.id,

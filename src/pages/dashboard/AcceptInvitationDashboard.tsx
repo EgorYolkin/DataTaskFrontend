@@ -12,6 +12,7 @@ import {UserInterface} from "@/interfaces/UserInterface.tsx";
 import {CheckCircleIcon, AlertTriangleIcon} from "lucide-react";
 import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/components/ui/card";
 import {toast} from "sonner"
+import {NotificationInterface} from "@/interfaces/NotificationInterface.tsx";
 
 async function acceptInvitation(projectID: number, t: any) {
     const apiUrl = import.meta.env.VITE_API_URL;
@@ -46,6 +47,7 @@ async function acceptInvitation(projectID: number, t: any) {
 
 interface AcceptInvitationDashboardProps {
     navMain: DashboardSidebarItemInterface[];
+    notifications: NotificationInterface[];
     projects: ProjectInterface[];
     sharedProjects: ProjectInterface[];
     user: UserInterface;
@@ -53,6 +55,7 @@ interface AcceptInvitationDashboardProps {
 
 export const AcceptInvitationDashboard: React.FC<AcceptInvitationDashboardProps> = ({
                                                                                         navMain,
+                                                                                        notifications,
                                                                                         projects,
                                                                                         sharedProjects,
                                                                                         user,
@@ -97,6 +100,7 @@ export const AcceptInvitationDashboard: React.FC<AcceptInvitationDashboardProps>
     return (
         <SidebarProvider>
             <AppSidebar
+                notifications={notifications}
                 navMain={navMain}
                 user={user}
                 projects={projects}

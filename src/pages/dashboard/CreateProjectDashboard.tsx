@@ -34,9 +34,11 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover";
+import {NotificationInterface} from "@/interfaces/NotificationInterface.tsx";
 
 interface CreateProjectDashboardProps {
     navMain: DashboardSidebarItemInterface[];
+    notifications: NotificationInterface[];
     projects: ProjectInterface[];
     sharedProjects: ProjectInterface[]
     user: UserInterface;
@@ -73,7 +75,13 @@ async function createProject(projectData: Record<string, string | number | undef
     return responseData;
 }
 
-export const CreateProjectDashboard: React.FC<CreateProjectDashboardProps> = ({navMain, projects, sharedProjects, user}) => {
+export const CreateProjectDashboard: React.FC<CreateProjectDashboardProps> = ({
+                                                                                  navMain,
+                                                                                  notifications,
+                                                                                  projects,
+                                                                                  sharedProjects,
+                                                                                  user
+                                                                              }) => {
     const [t] = useTranslation();
 
     const [projectName, setProjectName] = useState("");
@@ -108,7 +116,7 @@ export const CreateProjectDashboard: React.FC<CreateProjectDashboardProps> = ({n
 
     return (
         <SidebarProvider>
-            <AppSidebar navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
+            <AppSidebar notifications={notifications} navMain={navMain} user={user} projects={projects} sharedProjects={sharedProjects}/>
             <SidebarInset>
                 <header className="flex h-16 shrink-0 items-center gap-2 w-full">
                     <div className="flex items-center gap-2 px-5">

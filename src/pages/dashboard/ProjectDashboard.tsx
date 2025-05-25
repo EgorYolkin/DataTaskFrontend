@@ -39,9 +39,11 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar.tsx";
 import {TasksList} from "@/components/internal/list/TasksList.tsx";
 import {Textarea} from "@/components/ui/textarea";
 import {TaskInterface} from "@/interfaces/TasksInterfase.tsx";
+import {NotificationInterface} from "@/interfaces/NotificationInterface.tsx";
 
 interface ProjectDashboardProps {
     navMain: DashboardSidebarItemInterface[];
+    notifications: NotificationInterface[];
     projects: ProjectInterface[];
     sharedProjects: ProjectInterface[];
     user: UserInterface;
@@ -811,6 +813,7 @@ export const InviteUserDialog: React.FC<InviteUserDialogProps> = ({projectID}) =
 
 export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
                                                                       navMain,
+                                                                      notifications,
                                                                       projects,
                                                                       sharedProjects,
                                                                       user,
@@ -830,6 +833,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
         return (
             <SidebarProvider>
                 <AppSidebar
+                    notifications={notifications}
                     navMain={navMain}
                     user={user}
                     projects={projects}
@@ -890,6 +894,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
             <SidebarProvider>
                 <AppSidebar
                     navMain={navMain}
+                    notifications={notifications}
                     user={user}
                     projects={projects}
                     sharedProjects={sharedProjects}
@@ -910,6 +915,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
             <SidebarProvider>
                 <AppSidebar
                     navMain={navMain}
+                    notifications={notifications}
                     user={user}
                     projects={projects}
                     sharedProjects={sharedProjects}
@@ -933,6 +939,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
             <SidebarProvider>
                 <AppSidebar
                     navMain={navMain}
+                    notifications={notifications}
                     user={user}
                     projects={projects}
                     sharedProjects={sharedProjects}
@@ -958,6 +965,7 @@ export const ProjectDashboard: React.FC<ProjectDashboardProps> = ({
             <SidebarProvider>
                 <AppSidebar
                     navMain={navMain}
+                    notifications={notifications}
                     user={user}
                     projects={projects}
                     sharedProjects={sharedProjects}
