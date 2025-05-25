@@ -1,6 +1,5 @@
 import {NotificationInterface} from "@/interfaces/NotificationInterface.tsx";
 import React, {useEffect} from "react";
-import {FetchResponse} from "@/interfaces/FetchResponse.tsx";
 
 const apiUrl = import.meta.env.VITE_API_URL
 const apiVersion = import.meta.env.VITE_API_VERSION
