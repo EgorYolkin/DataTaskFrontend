@@ -208,7 +208,8 @@ const EditableText: React.FC<EditableTextProps> = ({value, onSave, className, is
 async function updateEntity(
     entityID: number,
     data: { name?: string; description?: string; },
-    t: (key: string) => string
+    t: (key: string) => string,
+    currentName?: string // Add currentName as an optional parameter to compare with the new name
 ) {
     const apiUrl = import.meta.env.VITE_API_URL;
     const apiVersion = import.meta.env.VITE_API_VERSION;
@@ -236,7 +237,9 @@ async function updateEntity(
             throw new Error(`Ошибка обновления project: ${response.status}`);
         }
     }
-    if (data.name) {
+
+    // Only redirect if the name has changed and is provided
+    if (data.name && data.name !== currentName) {
         window.location.href = `/project/${data.name}`;
     }
 }
